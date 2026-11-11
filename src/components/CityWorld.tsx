@@ -9,26 +9,26 @@ import * as THREE from "three";
 export function AtmosphericSky() {
   return (
     <group>
-      {/* Golden Sun */}
-      <mesh position={[40, 22, -150]}>
-        <sphereGeometry args={[18, 32, 32]} />
+      {/* Distant Golden Sunset Sun - Positioned far on the horizon */}
+      <mesh position={[70, 50, -750]}>
+        <sphereGeometry args={[38, 32, 32]} />
         <meshBasicMaterial color="#ffaa33" />
       </mesh>
-      {/* Sun glow halo */}
-      <mesh position={[40, 22, -150]}>
-        <sphereGeometry args={[36, 32, 32]} />
-        <meshBasicMaterial color="#ff7711" transparent opacity={0.3} />
+      {/* Sun glow corona */}
+      <mesh position={[70, 50, -750]}>
+        <sphereGeometry args={[75, 32, 32]} />
+        <meshBasicMaterial color="#ff7711" transparent opacity={0.35} />
       </mesh>
-      {/* Distant Clouds */}
-      {[-80, -20, 50, 110].map((cx, i) => (
-        <group key={i} position={[cx, 45 + (i % 2) * 8, -200 + i * 40]}>
+      {/* Distant Sunset Clouds along horizon */}
+      {[-240, -120, 0, 140, 260].map((cx, i) => (
+        <group key={i} position={[cx, 60 + (i % 2) * 12, -700 + (i % 3) * 40]}>
           <mesh>
-            <sphereGeometry args={[16, 16, 16]} />
-            <meshStandardMaterial color="#fff3e0" roughness={1} />
+            <sphereGeometry args={[36, 16, 16]} />
+            <meshStandardMaterial color="#fed7aa" roughness={1} />
           </mesh>
-          <mesh position={[12, -2, 0]}>
-            <sphereGeometry args={[13, 16, 16]} />
-            <meshStandardMaterial color="#ffe8cc" roughness={1} />
+          <mesh position={[24, -4, 0]}>
+            <sphereGeometry args={[30, 16, 16]} />
+            <meshStandardMaterial color="#fdba74" roughness={1} />
           </mesh>
         </group>
       ))}
@@ -300,30 +300,32 @@ export function BikeRider({
 // ==============================================================
 export function OceanWater() {
   return (
-    <group position={[0, -0.05, -350]}>
+    <group position={[0, -0.05, -400]}>
       {/* Vast Sparkling Turquoise Blue Ocean (Photo 5 & 6) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[1400, 700]} />
+        <planeGeometry args={[1600, 900]} />
         <meshStandardMaterial
           color="#0284c7" // Vibrant turquoise blue sea from Photo 5 & 6
-          roughness={0.08}
-          metalness={0.9}
+          emissive="#03456c"
+          emissiveIntensity={0.25}
+          roughness={0.12}
+          metalness={0.8}
         />
       </mesh>
 
       {/* Gentle shoreline transition foam right at harbor pier (z = -60) */}
-      <mesh position={[0, 0.02, 290]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[120, 16]} />
-        <meshBasicMaterial color="#bae6fd" transparent opacity={0.6} />
+      <mesh position={[0, 0.02, 340]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[140, 20]} />
+        <meshBasicMaterial color="#bae6fd" transparent opacity={0.65} />
       </mesh>
 
       {/* Distant coastal city skylines lining both shores (Photo 5 & 6) */}
-      {[-180, 180].map((shoreX) => (
+      {[-160, 160].map((shoreX) => (
         <group key={shoreX} position={[shoreX, 0, 0]}>
-          {Array.from({ length: 18 }).map((_, i) => {
-            const h = 30 + (i % 5) * 16;
+          {Array.from({ length: 22 }).map((_, i) => {
+            const h = 28 + (i % 6) * 14;
             const w = 18 + (i % 3) * 6;
-            const z = 320 - i * 40;
+            const z = 380 - i * 36;
             return (
               <mesh key={i} position={[0, h / 2, z]}>
                 <boxGeometry args={[w, h, w]} />
@@ -397,17 +399,146 @@ export function Speedboat() {
   );
 }
 
+// Helper to generate real in-world 3D billboard canvas texture (Photo 5 exact match!)
+function createBillboardTexture(project?: {
+  step: string;
+  title: string;
+  codePreview: string;
+  desc: string;
+  pills: string[];
+}) {
+  if (typeof document === "undefined" || !project) return null;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 680;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  // 1. Dark billboard background
+  ctx.fillStyle = "#060913";
+  ctx.fillRect(0, 0, 1024, 680);
+
+  // 2. Neon purple/amber top accent bar
+  const gradient = ctx.createLinearGradient(0, 0, 1024, 0);
+  gradient.addColorStop(0, "#c084fc");
+  gradient.addColorStop(0.5, "#ec4899");
+  gradient.addColorStop(1, "#3b82f6");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1024, 10);
+
+  // 3. Top bar metadata
+  ctx.fillStyle = "#d8b4fe";
+  ctx.font = "bold 20px monospace";
+  ctx.fillText(project.step, 48, 55);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "16px monospace";
+  ctx.fillText("BALAJI // CASE STUDY", 740, 55);
+
+  // Divider line
+  ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(48, 75);
+  ctx.lineTo(976, 75);
+  ctx.stroke();
+
+  // 4. Large Bold Neon Title (Photo 5)
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "900 42px system-ui, sans-serif";
+  ctx.shadowColor = "rgba(168, 85, 247, 0.9)";
+  ctx.shadowBlur = 24;
+  ctx.fillText(project.title, 48, 140);
+  ctx.shadowBlur = 0;
+
+  // 5. Code Preview Box
+  ctx.fillStyle = "#02040a";
+  ctx.fillRect(48, 175, 928, 130);
+  ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(48, 175, 928, 130);
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "20px monospace";
+  const lines = project.codePreview.split("\n");
+  lines.forEach((l, i) => {
+    ctx.fillText(l, 68, 222 + i * 36);
+  });
+
+  // 6. Description Text
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "22px system-ui, sans-serif";
+  const words = project.desc.split(" ");
+  let curLine = "";
+  let curY = 355;
+  for (let n = 0; n < words.length; n++) {
+    const testLine = curLine + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > 920 && n > 0) {
+      ctx.fillText(curLine, 48, curY);
+      curLine = words[n] + " ";
+      curY += 34;
+    } else {
+      curLine = testLine;
+    }
+  }
+  ctx.fillText(curLine, 48, curY);
+
+  // 7. Tech Stack Pills (Photo 5)
+  let pillX = 48;
+  const pillY = 475;
+  ctx.font = "bold 18px monospace";
+  project.pills.forEach((pill) => {
+    const w = ctx.measureText(pill).width + 32;
+    ctx.fillStyle = "rgba(168, 85, 247, 0.2)";
+    ctx.fillRect(pillX, pillY, w, 42);
+    ctx.strokeStyle = "#a855f7";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(pillX, pillY, w, 42);
+    ctx.fillStyle = "#f3e8ff";
+    ctx.fillText(pill, pillX + 16, pillY + 28);
+    pillX += w + 16;
+  });
+
+  // 8. Bottom CTA Button (Photo 5)
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(48, 565, 300, 54);
+  ctx.fillStyle = "#000000";
+  ctx.font = "900 18px monospace";
+  ctx.fillText("CLICK TO INSPECT →", 75, 600);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 // ==============================================================
 // 7. GIANT FLOATING BARGE BILLBOARDS (ACT 5: Exact match to Photo 5!)
 // Scaffolding frame on floating red barge displaying projects!
 // ==============================================================
 export function FloatingBargeBillboard({
   position,
+  rotation = [0, 0, 0],
+  project,
+  onClick,
 }: {
   position: [number, number, number];
+  rotation?: [number, number, number];
+  project?: {
+    step: string;
+    title: string;
+    codePreview: string;
+    desc: string;
+    pills: string[];
+  };
+  onClick?: () => void;
 }) {
+  const texture = useMemo(() => createBillboardTexture(project), [project]);
+
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       {/* Floating Red Industrial Barge Platform with tires (Photo 5) */}
       <mesh position={[0, 0.8, 0]}>
         <boxGeometry args={[36, 1.8, 14]} />
@@ -448,10 +579,36 @@ export function FloatingBargeBillboard({
         <boxGeometry args={[28.4, 18.4, 0.2]} />
         <meshBasicMaterial color="#a855f7" />
       </mesh>
-      {/* Black Billboard Display Screen (Photo 5) */}
-      <mesh position={[0, 12, 0.7]}>
-        <boxGeometry args={[28, 18, 0.2]} />
-        <meshStandardMaterial color="#080811" roughness={0.2} metalness={0.9} />
+
+      {/* Neon Light illuminating the sea and passing boat */}
+      <pointLight position={[0, 12, 4]} intensity={4.5} distance={50} color="#c084fc" />
+
+      {/* Back panel */}
+      <mesh position={[0, 12, -0.1]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[28, 18]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.8} />
+      </mesh>
+
+      {/* Real In-World Project Billboard Screen Texture (Photo 5 exact match!) */}
+      <mesh
+        position={[0, 12, 0.7]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+        onPointerOver={() => {
+          if (typeof document !== "undefined") document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          if (typeof document !== "undefined") document.body.style.cursor = "auto";
+        }}
+      >
+        <planeGeometry args={[28, 18]} />
+        {texture ? (
+          <meshBasicMaterial map={texture} toneMapped={false} />
+        ) : (
+          <meshStandardMaterial color="#080811" roughness={0.2} metalness={0.9} />
+        )}
       </mesh>
     </group>
   );

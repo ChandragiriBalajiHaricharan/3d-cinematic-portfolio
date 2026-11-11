@@ -82,7 +82,7 @@ const bargeProjects = [
 ];
 
 // Main 3D Scene Controller
-function CinematicScene() {
+function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) => void }) {
   const scroll = useScroll();
   const { camera } = useThree();
 
@@ -149,7 +149,7 @@ function CinematicScene() {
     // ==============================================================
     else if (r < 0.58) {
       const p = (r - 0.48) / 0.10;
-      currentBoatZ = -70 - p * 70; // z=-70 to z=-140
+      currentBoatZ = -70 - p * 60; // z=-70 to z=-130
       currentBoatX = 0;
 
       // Aerial drone view (Photo 6 exact match!)
@@ -158,24 +158,27 @@ function CinematicScene() {
       globalAudio.update("boat", 0.85);
     }
     // ==============================================================
-    // ACT 5: [0.58 -> 0.88] SPEEDBOAT CRUISES TO FLOATING BARGES ONE-BY-ONE (Photo 5)
+    // ACT 5: [0.58 -> 0.88] SPEEDBOAT CRUISES PAST FLOATING BARGES ONE-BY-ONE (Photo 5 GTA Vice City match!)
     // ==============================================================
     else if (r < 0.88) {
       const p = (r - 0.58) / 0.30;
-      currentBoatZ = -140 - p * 320; // sails from z=-140 to z=-460
-      currentBoatX = Math.sin(p * Math.PI * 3) * 3;
+      currentBoatZ = -130 - p * 340; // sails from z=-130 to z=-470
+      currentBoatX = Math.sin(p * Math.PI * 4) * 2.2; // gentle channel cruise
 
-      // Cockpit chase camera viewing giant billboard ahead (Photo 5 match!)
-      camTarget.set(currentBoatX * 0.5, 4.2, currentBoatZ + 12);
-      lookTarget.set(0, 8, currentBoatZ - 26);
-      globalAudio.update("boat", 0.75);
+      // 3rd-person chase camera right behind boat (Photo 5 match!)
+      camTarget.set(currentBoatX * 0.7, 4.2, currentBoatZ + 13);
+
+      // Camera smoothly swivels to frame the billboard being passed alongside
+      const gazeSide = Math.sin(p * Math.PI * 4);
+      lookTarget.set(-gazeSide * 6.5, 6.0, currentBoatZ - 20);
+      globalAudio.update("boat", 0.78);
     }
     // ==============================================================
     // ACT 6: [0.88 -> 1.00] DESTINATION MARINA & ABOUT BALAJI FINALE
     // ==============================================================
     else {
       const p = (r - 0.88) / 0.12;
-      currentBoatZ = -460 - p * 30;
+      currentBoatZ = -470 - p * 30;
       currentBoatX = 0;
 
       camTarget.set(0, 7 + p * 4, currentBoatZ + 20);
@@ -216,10 +219,12 @@ function CinematicScene() {
 
   return (
     <>
-      <ambientLight intensity={0.5} color="#ffe8cc" />
-      <directionalLight position={[40, 50, -80]} intensity={3.0} color="#ff9933" castShadow />
-      <directionalLight position={[-40, 30, 80]} intensity={0.8} color="#38bdf8" />
-      <fog attach="fog" args={["#0c1524", 60, 480]} />
+      <color attach="background" args={["#0c1a2e"]} />
+      <ambientLight intensity={0.7} color="#e0f2fe" />
+      <directionalLight position={[60, 60, -60]} intensity={2.8} color="#ff9933" castShadow />
+      <directionalLight position={[0, 80, -320]} intensity={2.6} color="#38bdf8" />
+      <directionalLight position={[-60, 50, -450]} intensity={1.8} color="#fed7aa" />
+      <fog attach="fog" args={["#0c1a2e", 90, 750]} />
 
       {/* Atmospheric Paris Sunset & Clouds */}
       <AtmosphericSky />
@@ -243,10 +248,23 @@ function CinematicScene() {
         <Speedboat />
       </group>
 
-      {/* ACT 5: Giant Floating Barge Billboards in the Sea (Photo 5 exact match!) */}
-      {bargeProjects.map((p) => (
-        <FloatingBargeBillboard key={p.step} position={[0, 0, p.z]} />
-      ))}
+      {/* ACT 5: 4 Giant Floating Barge Billboards along the waterway (Photo 5 GTA Vice City match!) */}
+      {bargeProjects.map((p, idx) => {
+        const isLeft = idx % 2 === 0;
+        const posX = isLeft ? -17 : 17;
+        const rotY = isLeft ? 0.32 : -0.32;
+        const posZ = -180 - idx * 85;
+
+        return (
+          <FloatingBargeBillboard
+            key={p.step}
+            position={[posX, 0, posZ]}
+            rotation={[0, rotY, 0]}
+            project={p}
+            onClick={() => onSelectProject(p.title)}
+          />
+        );
+      })}
     </>
   );
 }
@@ -386,49 +404,34 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
         </p>
       </div>
 
-      {/* ACT 5: 4 Giant Floating Barge Billboards appearing one-by-one (58% - 88%) */}
-      {bargeProjects.map((p, idx) => {
-        const topVh = 570 + idx * 80;
-        return (
-          <div
-            key={p.step}
-            style={{
-              position: "absolute",
-              top: `${topVh}vh`,
-              left: 0,
-              right: 0,
-              display: "flex",
-              justifyContent: "center",
-              padding: "0 16px",
-            }}
-          >
-            <div className="barge-billboard-card">
-              <div className="top-bar">
-                <span>{p.step}</span>
-                <span>BALAJI // CASE STUDY</span>
-              </div>
-              <div className="title">{p.title}</div>
-              <div className="preview-box">
-                <pre style={{ margin: 0, fontFamily: "inherit" }}>{p.codePreview}</pre>
-              </div>
-              <div className="desc">{p.desc}</div>
-              <div className="pills">
-                {p.pills.map((pill) => (
-                  <span key={pill} className="pill">{pill}</span>
-                ))}
-              </div>
-              <div>
-                <button
-                  onClick={() => onSelectProject(p.title)}
-                  className="cta-btn"
-                >
-                  READ CASE STUDY →
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {/* ACT 5: In-World 3D Billboards (Projects are painted directly onto the 3D barge screens) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "590vh",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "monospace",
+            fontSize: "12px",
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: "#38bdf8",
+            background: "rgba(15, 23, 42, 0.8)",
+            border: "1px solid rgba(56, 189, 248, 0.4)",
+            padding: "10px 24px",
+            borderRadius: "9999px",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          💡 3D WATERWAY BILLBOARDS // CLICK ANY BILLBOARD IN 3D TO OPEN CASE STUDY
+        </span>
+      </div>
 
       {/* ACT 6: Last — About Me & Contact (88% - 100%) */}
       <div
@@ -568,7 +571,7 @@ export default function CinematicExperience() {
         style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }}
       >
         <ScrollControls pages={10} damping={0.25}>
-          <CinematicScene />
+          <CinematicScene onSelectProject={(title) => setSelectedProject(title)} />
           <Scroll html style={{ width: "100%", height: "100%" }}>
             <ScrollOverlayContent onSelectProject={(title) => setSelectedProject(title)} />
           </Scroll>
