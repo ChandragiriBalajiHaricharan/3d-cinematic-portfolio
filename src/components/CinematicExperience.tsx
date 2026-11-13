@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useState, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ScrollControls, Scroll, useScroll } from "@react-three/drei";
+import { ScrollControls, Scroll, useScroll, Text } from "@react-three/drei";
 import * as THREE from "three";
 import {
   AtmosphericSky,
@@ -107,60 +107,59 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     let currentBoatZ = -70;
 
     // ==============================================================
-    // ACT 1: [0.00 -> 0.14] FOCUS ON PARIS EIFFEL TOWER & BOULEVARD
-    // Camera starts high on the boulevard looking down at Eiffel Tower
-    // Bike is visible parked in front of camera at z=95!
+    // ACT 1: [0.00 -> 0.14] HERO EIFFEL TOWER & BLUE PARIS SKY (Image 1 match!)
+    // Low-angle dramatic camera looking up at Eiffel Tower in the bright blue sky
     // ==============================================================
     if (r < 0.14) {
       const p = r / 0.14;
-      // Gentle cinematic breathing sway (handheld movie crane feel)
-      const swayX = Math.sin(time * 0.7) * 0.35;
-      const swayY = Math.cos(time * 0.5) * 0.2;
-      camTarget.set(swayX, 16 - p * 6 + swayY, 125 - p * 15);
-      lookTarget.set(0, 18, -20);
+      const swayX = Math.sin(time * 0.7) * 0.25;
+      const swayY = Math.cos(time * 0.5) * 0.15;
+      camTarget.set(7 + swayX, 8 + swayY - p * 2, 28 - p * 8);
+      lookTarget.set(-2, 42, -50);
       currentBikeX = 0;
       currentBikeZ = 95;
       globalAudio.update("idle", 0.1);
     }
     // ==============================================================
-    // ACT 2: [0.14 -> 0.28] REVEAL MY NAME: "BALAJI — AI AGENT ENGINEER"
-    // Camera glides down to boulevard level, bike is right in front waiting!
+    // ACT 2: [0.14 -> 0.28] 3D GIANT CITY TITLE (Image 4 match!)
+    // Camera swoops down to boulevard level, framing 3D title in city sky
     // ==============================================================
     else if (r < 0.28) {
       const p = (r - 0.14) / 0.14;
-      camTarget.set(0, 10 - p * 5, 110 - p * 8);
-      lookTarget.set(0, 4, 30);
+      camTarget.set(0, 11 - p * 5, 42 - p * 12);
+      lookTarget.set(0, 14 - p * 6, 12);
       currentBikeX = 0;
       currentBikeZ = 95;
       globalAudio.update("idle", 0.2);
     }
     // ==============================================================
-    // ACT 3: [0.28 -> 0.48] MOTORCYCLE RIDE & SKILLS APPEAR ONE-BY-ONE
-    // Bike speeds down boulevard from z=95 down to z=-65
+    // ACT 3: [0.28 -> 0.48] MOTORCYCLE RIDE UP HIGHWAY RAMP (Image 5 match!)
+    // Bike speeds up bridge ramp towards overhead sign 'STILL WITH ME?'
     // ==============================================================
     else if (r < 0.48) {
       const p = (r - 0.28) / 0.20;
       currentBikeZ = 95 - p * 160; // down to pier z=-65
-      currentBikeX = Math.sin(p * Math.PI * 4) * 1.6;
+      currentBikeX = Math.sin(p * Math.PI * 4) * 1.5;
       currentBikeLean = Math.cos(p * Math.PI * 4) * 0.18;
+      const bikeY = currentBikeZ < 20 ? (20 - currentBikeZ) * 0.08 : 0;
 
       // 3rd-person chase camera locked behind motorcycle
-      camTarget.set(currentBikeX * 0.6, 3.5, currentBikeZ + 7.5);
-      lookTarget.set(currentBikeX, 2.2, currentBikeZ - 18);
+      camTarget.set(currentBikeX * 0.6, bikeY + 3.4, currentBikeZ + 7.5);
+      lookTarget.set(currentBikeX, bikeY + 2.0, currentBikeZ - 18);
       globalAudio.update("bike", 0.75);
     }
     // ==============================================================
-    // ACT 4: [0.48 -> 0.58] SEAMLESS TRANSITION FROM PIER TO SPEEDBOAT (Photo 6)
-    // Boat launches into turquoise open sea! Sweeping aerial view
+    // ACT 4: [0.48 -> 0.58] SPEEDBOAT ON TURQUOISE SEA (Image 2 match!)
+    // Sweeping high aerial drone view of boat in turquoise water
     // ==============================================================
     else if (r < 0.58) {
       const p = (r - 0.48) / 0.10;
       currentBoatZ = -70 - p * 60; // z=-70 to z=-130
       currentBoatX = 0;
 
-      // Aerial drone view (Photo 6 exact match!)
-      camTarget.set(0, 14 + p * 6, currentBoatZ + 24);
-      lookTarget.set(0, 0, currentBoatZ - 30);
+      // Aerial drone view (Image 2 exact match!)
+      camTarget.set(0, 24 + p * 6, currentBoatZ + 36);
+      lookTarget.set(0, 0, currentBoatZ - 40);
       globalAudio.update("boat", 0.85);
     }
     // ==============================================================
@@ -196,7 +195,8 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     if (bikeGroupRef.current) {
       if (r < 0.48) {
         bikeGroupRef.current.visible = true;
-        bikeGroupRef.current.position.set(currentBikeX, 0, currentBikeZ);
+        const bikeY = currentBikeZ < 20 ? (20 - currentBikeZ) * 0.08 : 0;
+        bikeGroupRef.current.position.set(currentBikeX, bikeY, currentBikeZ);
         bikeGroupRef.current.rotation.z = -currentBikeLean;
       } else {
         bikeGroupRef.current.visible = false;
@@ -225,14 +225,14 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 
   return (
     <>
-      <color attach="background" args={["#0c1a2e"]} />
-      <ambientLight intensity={0.7} color="#e0f2fe" />
-      <directionalLight position={[60, 60, -60]} intensity={2.8} color="#ff9933" castShadow />
-      <directionalLight position={[0, 80, -320]} intensity={2.6} color="#38bdf8" />
-      <directionalLight position={[-60, 50, -450]} intensity={1.8} color="#fed7aa" />
-      <fog attach="fog" args={["#0c1a2e", 90, 750]} />
+      {/* Radiant Azure Blue Sky & Sun (Image 1 & 2 match!) */}
+      <color attach="background" args={["#38bdf8"]} />
+      <ambientLight intensity={1.1} color="#ffffff" />
+      <directionalLight position={[60, 80, -40]} intensity={3.5} color="#fff1cc" castShadow />
+      <directionalLight position={[-40, 40, 60]} intensity={1.2} color="#bae6fd" />
+      <fog attach="fog" args={["#7dd3fc", 140, 850]} />
 
-      {/* Atmospheric Paris Sunset & Clouds */}
+      {/* Atmospheric Paris Sky & Fluffy Clouds (Image 1 & 2) */}
       <AtmosphericSky />
 
       {/* ACT 1: Real 3D Eiffel Tower Model (eiffel.glb) */}
@@ -243,7 +243,54 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       {/* ACT 1: Paris Ferris Wheel on skyline (Photo 1 & 2) */}
       <ParisFerrisWheel position={[68, 0, -50]} />
 
-      {/* ACT 3: Paris Boulevard with 3D Haussmann buildings, trees and pier */}
+      {/* ACT 2: Giant 3D Title in City Sky (Image 4 exact match!) */}
+      <group position={[0, 15, 12]}>
+        <Text
+          position={[0, 3.8, 0]}
+          fontSize={2.8}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.15}
+        >
+          BALAJI
+        </Text>
+        <Text
+          position={[0, 1.2, 0]}
+          fontSize={1.4}
+          color="#fde047"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.2}
+        >
+          AI AGENT ENGINEER
+        </Text>
+        <Text
+          position={[0, -0.8, 0]}
+          fontSize={0.7}
+          color="#e0f2fe"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.12}
+        >
+          LANGGRAPH · PYTHON · PINECONE · CHROMA · 179 TESTS
+        </Text>
+      </group>
+
+      {/* Highway Sign Gantry Text (Image 5 exact match!) */}
+      <group position={[0, 8.5, -19.8]}>
+        <Text
+          fontSize={1.1}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.18}
+        >
+          STILL WITH ME?
+        </Text>
+      </group>
+
+      {/* ACT 3: Paris Boulevard with 3D Haussmann buildings, trees, highway ramp and loop */}
       <CityBoulevard />
 
       {/* Real 3D Man & Carbon Bike roaming the city of Paris */}
@@ -287,89 +334,33 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: string) => void }) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      {/* ACT 1: Cinematic Movie Title Opening Sequence (0 - 14%) */}
+      {/* ACT 1: Prologue Paris Screen Marker (0 - 14%) */}
       <div
         style={{
           position: "absolute",
-          top: "14vh",
+          top: "8vh",
           left: 0,
           right: 0,
           textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "8px",
           pointerEvents: "none",
         }}
       >
-        <div
+        <span
           style={{
             fontFamily: "monospace",
             fontSize: "11px",
-            letterSpacing: "0.45em",
+            letterSpacing: "0.4em",
             textTransform: "uppercase",
-            color: "rgba(255, 195, 120, 0.85)",
-            textShadow: "0 0 20px rgba(255, 170, 50, 0.4)",
+            color: "rgba(255, 255, 255, 0.85)",
+            background: "rgba(0, 0, 0, 0.4)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            padding: "8px 20px",
+            borderRadius: "9999px",
+            backdropFilter: "blur(6px)",
           }}
         >
-          A CINEMATIC PORTFOLIO EXPERIENCE
-        </div>
-
-        <h2
-          style={{
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            fontWeight: 200,
-            fontSize: "clamp(26px, 4.5vw, 48px)",
-            letterSpacing: "0.3em",
-            color: "#ffffff",
-            textTransform: "uppercase",
-            textShadow: "0 0 35px rgba(255, 180, 80, 0.55)",
-            margin: "2px 0",
-          }}
-        >
-          PARIS AT DUSK
-        </h2>
-
-        <div
-          style={{
-            width: "60px",
-            height: "1px",
-            background: "linear-gradient(90deg, transparent, rgba(255, 180, 80, 0.8), transparent)",
-            margin: "4px auto",
-          }}
-        />
-
-        <div
-          style={{
-            fontFamily: "monospace",
-            fontSize: "10px",
-            letterSpacing: "0.3em",
-            color: "rgba(255, 255, 255, 0.5)",
-            textTransform: "uppercase",
-          }}
-        >
-          PROLOGUE // THE RENDEZVOUS
-        </div>
-      </div>
-
-      {/* ACT 2: My Name Screen (14% - 28%) */}
-      <div
-        style={{
-          position: "absolute",
-          top: "165vh",
-          left: 0,
-          right: 0,
-          textAlign: "center",
-        }}
-        className="overlay-title"
-      >
-        <p className="sub" style={{ letterSpacing: "0.45em" }}>AI AGENT ENGINEER</p>
-        <h1 style={{ color: "#fff", textShadow: "0 0 60px rgba(255,170,50,0.8)" }}>
-          BALAJI
-        </h1>
-        <p className="sub" style={{ marginTop: "14px", color: "rgba(255,200,120,0.9)", letterSpacing: "0.28em" }}>
-          ORCHESTRATION · VECTOR MEMORY · 179 TESTS
-        </p>
+          PARIS AT DUSK // SCROLL TO COMMENCE
+        </span>
       </div>
 
       {/* ACT 3: The Motorcycle Ride — The center 65% is COMPLETELY OPEN for the motorcycle! */}

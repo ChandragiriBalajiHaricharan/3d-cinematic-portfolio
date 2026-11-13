@@ -6,31 +6,43 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 // ==============================================================
-// 1. SKY & SUN (Dusk over Paris transitioning to coastal sea)
+// 1. SKY & SUN (Radiant Blue Sky & Golden Sunlight - Image 1 & 2 match!)
 // ==============================================================
 export function AtmosphericSky() {
   return (
     <group>
-      {/* Distant Golden Sunset Sun - Positioned far on the horizon */}
-      <mesh position={[70, 50, -750]}>
-        <sphereGeometry args={[38, 32, 32]} />
-        <meshBasicMaterial color="#ffaa33" />
+      {/* Radiant Golden Sun in Azure Sky (Image 1 & 2) */}
+      <mesh position={[85, 80, -220]}>
+        <sphereGeometry args={[26, 32, 32]} />
+        <meshBasicMaterial color="#fff3cc" />
       </mesh>
-      {/* Sun glow corona */}
-      <mesh position={[70, 50, -750]}>
-        <sphereGeometry args={[75, 32, 32]} />
-        <meshBasicMaterial color="#ff7711" transparent opacity={0.35} />
+      {/* Sun glow halo */}
+      <mesh position={[85, 80, -220]}>
+        <sphereGeometry args={[55, 32, 32]} />
+        <meshBasicMaterial color="#ffbb44" transparent opacity={0.35} />
       </mesh>
-      {/* Distant Sunset Clouds along horizon */}
-      {[-240, -120, 0, 140, 260].map((cx, i) => (
-        <group key={i} position={[cx, 60 + (i % 2) * 12, -700 + (i % 3) * 40]}>
+
+      {/* Fluffy White Clouds across the Sky (Image 1 & 2) */}
+      {[
+        [-180, 75, -260],
+        [-60, 90, -240],
+        [40, 85, -280],
+        [160, 70, -250],
+        [-100, 65, -120],
+        [120, 80, -100],
+      ].map(([cx, cy, cz], i) => (
+        <group key={i} position={[cx, cy, cz]}>
           <mesh>
-            <sphereGeometry args={[36, 16, 16]} />
-            <meshStandardMaterial color="#fed7aa" roughness={1} />
+            <sphereGeometry args={[22, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.9} />
           </mesh>
-          <mesh position={[24, -4, 0]}>
-            <sphereGeometry args={[30, 16, 16]} />
-            <meshStandardMaterial color="#fdba74" roughness={1} />
+          <mesh position={[14, -2, 4]}>
+            <sphereGeometry args={[18, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.9} />
+          </mesh>
+          <mesh position={[-14, -3, -4]}>
+            <sphereGeometry args={[16, 16, 16]} />
+            <meshStandardMaterial color="#f0f9ff" roughness={0.9} />
           </mesh>
         </group>
       ))}
@@ -195,7 +207,6 @@ export function RealCarbonBike({
       <primitive object={model} />
     </group>
   );
-}
 }
 
 // ==============================================================
@@ -438,6 +449,43 @@ export function CityBoulevard() {
           ))}
         </group>
       ))}
+
+      {/* Highway Gantry Sign & Loop (Image 5 exact match!) */}
+      <group position={[0, 8.5, -20]}>
+        {/* Support pillars */}
+        <mesh position={[-12, -3.5, 0]}>
+          <cylinderGeometry args={[0.3, 0.3, 7, 8]} />
+          <meshStandardMaterial color="#334155" metalness={0.8} />
+        </mesh>
+        <mesh position={[12, -3.5, 0]}>
+          <cylinderGeometry args={[0.3, 0.3, 7, 8]} />
+          <meshStandardMaterial color="#334155" metalness={0.8} />
+        </mesh>
+        {/* Overhead beam */}
+        <mesh position={[0, 0.5, 0]}>
+          <boxGeometry args={[25, 0.5, 0.5]} />
+          <meshStandardMaterial color="#334155" metalness={0.8} />
+        </mesh>
+        {/* Highway Sign Board */}
+        <mesh position={[0, 0, 0.2]}>
+          <boxGeometry args={[14, 2.8, 0.2]} />
+          <meshStandardMaterial color="#047857" roughness={0.3} />
+        </mesh>
+      </group>
+
+      {/* Circular looping highway overpass in the sky (Image 5 exact match!) */}
+      <group position={[32, 22, -65]} rotation={[0.35, 0.3, 0]}>
+        <mesh>
+          <torusGeometry args={[30, 2.2, 8, 36, Math.PI * 1.6]} />
+          <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.5} />
+        </mesh>
+        {[-18, 0, 18].map((px) => (
+          <mesh key={px} position={[px, -11, 0]}>
+            <cylinderGeometry args={[1.2, 1.4, 22, 8]} />
+            <meshStandardMaterial color="#64748b" roughness={0.7} />
+          </mesh>
+        ))}
+      </group>
 
       {/* Harbor Pier where motorcycle arrives and transitions to water */}
       <group position={[0, -0.2, -70]}>
