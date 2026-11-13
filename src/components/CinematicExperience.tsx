@@ -7,6 +7,7 @@ import * as THREE from "three";
 import {
   AtmosphericSky,
   EiffelTower,
+  ParisFerrisWheel,
   CityBoulevard,
   BikeRider,
   OceanWater,
@@ -110,7 +111,10 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     // ==============================================================
     if (r < 0.14) {
       const p = r / 0.14;
-      camTarget.set(0, 16 - p * 6, 125 - p * 15);
+      // Gentle cinematic breathing sway (handheld movie crane feel)
+      const swayX = Math.sin(time * 0.7) * 0.35;
+      const swayY = Math.cos(time * 0.5) * 0.2;
+      camTarget.set(swayX, 16 - p * 6 + swayY, 125 - p * 15);
       lookTarget.set(0, 18, -20);
       currentBikeX = 0;
       currentBikeZ = 95;
@@ -232,6 +236,9 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       {/* ACT 1: Paris Eiffel Tower at center of attention */}
       <EiffelTower position={[0, 0, -45]} />
 
+      {/* ACT 1: Paris Ferris Wheel on skyline (Photo 1 & 2) */}
+      <ParisFerrisWheel position={[68, 0, -50]} />
+
       {/* ACT 3: Paris Boulevard with Haussmann buildings and pier */}
       <CityBoulevard />
 
@@ -273,11 +280,69 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: string) => void }) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      {/* ACT 1: Eiffel Tower Focus (0 - 14%) */}
-      <div style={{ position: "absolute", top: "8vh", left: 0, right: 0, textAlign: "center" }}>
-        <p className="overlay-section-label" style={{ letterSpacing: "0.4em" }}>
-          PARIS AT DUSK // SCROLL TO EXPLORE
-        </p>
+      {/* ACT 1: Cinematic Movie Title Opening Sequence (0 - 14%) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "14vh",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "8px",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "monospace",
+            fontSize: "11px",
+            letterSpacing: "0.45em",
+            textTransform: "uppercase",
+            color: "rgba(255, 195, 120, 0.85)",
+            textShadow: "0 0 20px rgba(255, 170, 50, 0.4)",
+          }}
+        >
+          A CINEMATIC PORTFOLIO EXPERIENCE
+        </div>
+
+        <h2
+          style={{
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            fontWeight: 200,
+            fontSize: "clamp(26px, 4.5vw, 48px)",
+            letterSpacing: "0.3em",
+            color: "#ffffff",
+            textTransform: "uppercase",
+            textShadow: "0 0 35px rgba(255, 180, 80, 0.55)",
+            margin: "2px 0",
+          }}
+        >
+          PARIS AT DUSK
+        </h2>
+
+        <div
+          style={{
+            width: "60px",
+            height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(255, 180, 80, 0.8), transparent)",
+            margin: "4px auto",
+          }}
+        />
+
+        <div
+          style={{
+            fontFamily: "monospace",
+            fontSize: "10px",
+            letterSpacing: "0.3em",
+            color: "rgba(255, 255, 255, 0.5)",
+            textTransform: "uppercase",
+          }}
+        >
+          PROLOGUE // THE RENDEZVOUS
+        </div>
       </div>
 
       {/* ACT 2: My Name Screen (14% - 28%) */}
@@ -516,7 +581,7 @@ function BottomHUD() {
     <div
       style={{
         position: "fixed",
-        bottom: 24,
+        bottom: 32,
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 100,
@@ -550,6 +615,34 @@ export default function CinematicExperience() {
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "#060913" }}>
+      {/* Top & Bottom Cinematic Letterbox Bars */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "22px",
+          background: "#000000",
+          zIndex: 90,
+          pointerEvents: "none",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "22px",
+          background: "#000000",
+          zIndex: 90,
+          pointerEvents: "none",
+          borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+        }}
+      />
+
       <TopHUD />
       <JourneyNavigator />
       <BottomHUD />

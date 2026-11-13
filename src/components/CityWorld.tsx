@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 // ==============================================================
@@ -42,6 +43,13 @@ export function AtmosphericSky() {
 export function EiffelTower({ position = [0, 0, -45] }: { position?: [number, number, number] }) {
   const ironColor = "#140e08";
   const lightGold = "#ffb040";
+  const beaconBeamRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (beaconBeamRef.current) {
+      beaconBeamRef.current.rotation.y = state.clock.elapsedTime * 0.35;
+    }
+  });
 
   return (
     <group position={position}>
@@ -123,6 +131,64 @@ export function EiffelTower({ position = [0, 0, -45] }: { position?: [number, nu
         <meshBasicMaterial color="#ffffff" />
       </mesh>
       <pointLight position={[0, 146, 0]} intensity={45} color="#ffeebb" distance={250} />
+
+      {/* Sweeping Golden Beacon Light Beam across Paris sky */}
+      <group ref={beaconBeamRef} position={[0, 146, 0]}>
+        <mesh position={[0, 0, 80]} rotation={[Math.PI / 2 + 0.12, 0, 0]}>
+          <coneGeometry args={[14, 160, 16, 1, true]} />
+          <meshBasicMaterial
+            color="#fff2cc"
+            transparent
+            opacity={0.16}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// ==============================================================
+// 2B. PARIS FERRIS WHEEL (Photo 1 & 2 - Paris skyline at dusk)
+// ==============================================================
+export function ParisFerrisWheel({ position = [68, 0, -50] }: { position?: [number, number, number] }) {
+  const wheelRef = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    if (wheelRef.current) {
+      wheelRef.current.rotation.z = state.clock.elapsedTime * 0.1;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Support Legs */}
+      <mesh position={[-3.5, 17, 0]} rotation={[0, 0, -0.2]}>
+        <cylinderGeometry args={[0.3, 0.5, 36, 8]} />
+        <meshStandardMaterial color="#2d241e" metalness={0.8} />
+      </mesh>
+      <mesh position={[3.5, 17, 0]} rotation={[0, 0, 0.2]}>
+        <cylinderGeometry args={[0.3, 0.5, 36, 8]} />
+        <meshStandardMaterial color="#2d241e" metalness={0.8} />
+      </mesh>
+
+      {/* Rotating Wheel with golden illuminated spokes */}
+      <group ref={wheelRef} position={[0, 34, 0]}>
+        <mesh>
+          <torusGeometry args={[22, 0.35, 8, 36]} />
+          <meshBasicMaterial color="#ffaa33" />
+        </mesh>
+        <mesh>
+          <torusGeometry args={[17, 0.2, 8, 32]} />
+          <meshBasicMaterial color="#ff8811" />
+        </mesh>
+        {Array.from({ length: 12 }).map((_, i) => (
+          <mesh key={i} rotation={[0, 0, (i * Math.PI) / 6]}>
+            <boxGeometry args={[44, 0.12, 0.12]} />
+            <meshStandardMaterial color="#ffaa33" />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
@@ -146,8 +212,19 @@ export function CityBoulevard() {
       {/* Road surface leading to harbor pier */}
       <mesh position={[0, 0.05, 30]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[24, 200]} />
-        <meshStandardMaterial color="#16120d" roughness={0.2} metalness={0.8} />
+        <meshStandardMaterial color="#16120d" roughness={0.25} metalness={0.7} />
       </mesh>
+
+      {/* Wet Puddle Sheen in Foreground reflecting Paris sunset & Eiffel Tower (Photo 1 & 2) */}
+      <mesh position={[0, 0.08, 104]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[14, 28]} />
+        <meshStandardMaterial color="#0a0805" roughness={0.03} metalness={0.96} />
+      </mesh>
+      <mesh position={[-3.5, 0.07, 72]} rotation={[-Math.PI / 2, 0, 0.08]}>
+        <planeGeometry args={[8, 34]} />
+        <meshStandardMaterial color="#0c0906" roughness={0.05} metalness={0.93} />
+      </mesh>
+
       {/* Sidewalks */}
       <mesh position={[-13, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[5, 200]} />
@@ -173,9 +250,10 @@ export function CityBoulevard() {
         </group>
       ))}
 
-      {/* Boulevard Street Lamps */}
+      {/* Boulevard Street Lamps with warm ambient illumination */}
       {Array.from({ length: 12 }).map((_, i) => {
         const z = 110 - i * 16;
+        const hasLight = i < 4; // Add real pointlights to foreground lamps closest to camera
         return (
           <group key={i}>
             <mesh position={[-10.5, 4, z]}>
@@ -186,6 +264,10 @@ export function CityBoulevard() {
               <octahedronGeometry args={[0.5]} />
               <meshBasicMaterial color="#ffc366" />
             </mesh>
+            {hasLight && (
+              <pointLight position={[-10.5, 8.2, z]} intensity={3.5} distance={16} color="#ffaa33" />
+            )}
+
             <mesh position={[10.5, 4, z]}>
               <cylinderGeometry args={[0.08, 0.15, 8, 8]} />
               <meshStandardMaterial color="#111" metalness={0.9} />
@@ -194,6 +276,9 @@ export function CityBoulevard() {
               <octahedronGeometry args={[0.5]} />
               <meshBasicMaterial color="#ffc366" />
             </mesh>
+            {hasLight && (
+              <pointLight position={[10.5, 8.2, z]} intensity={3.5} distance={16} color="#ffaa33" />
+            )}
           </group>
         );
       })}
