@@ -197,55 +197,136 @@ export function ParisFerrisWheel({ position = [68, 0, -50] }: { position?: [numb
 // 3. PARIS STREET & BOULEVARD (ACT 3: Motorcycle Ride & Skills)
 // ==============================================================
 export function CityBoulevard() {
+  const facadeTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load("/textures/haussmann_facade.jpg");
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1.5, 1);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
+  const cobblestoneTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load("/textures/wet_paris_cobblestone.jpg");
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 24);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
+  const sidewalkTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load("/textures/paris_sidewalk_curb.jpg");
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1, 16);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
+  const skylineTexture = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load("/textures/eiffel_tower_sunset.jpg");
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
   const buildings = useMemo(() => {
-    const list: Array<{ x: number; z: number; w: number; h: number; d: number; color: string }> = [];
+    const list: Array<{ x: number; z: number; w: number; h: number; d: number; isLeft: boolean }> = [];
     // Paris street buildings from z: 120 down to z: -60
     for (let z = 120; z >= -60; z -= 24) {
-      list.push({ x: -25, z, w: 20, h: 24, d: 22, color: "#c9ad84" });
-      list.push({ x: 25, z, w: 20, h: 24, d: 22, color: "#bf9f72" });
+      list.push({ x: -25, z, w: 20, h: 26, d: 23, isLeft: true });
+      list.push({ x: 25, z, w: 20, h: 26, d: 23, isLeft: false });
     }
     return list;
   }, []);
 
   return (
     <group>
-      {/* Road surface leading to harbor pier */}
+      {/* Photorealistic Paris Sunset & Eiffel Tower Horizon Backdrop (Photo 1 & 2) */}
+      <mesh position={[0, 46, -58]}>
+        <planeGeometry args={[150, 85]} />
+        {skylineTexture ? (
+          <meshBasicMaterial map={skylineTexture} toneMapped={false} />
+        ) : (
+          <meshBasicMaterial color="#1a120b" />
+        )}
+      </mesh>
+
+      {/* Photorealistic Wet Paris Cobblestone Road */}
       <mesh position={[0, 0.05, 30]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[24, 200]} />
-        <meshStandardMaterial color="#16120d" roughness={0.25} metalness={0.7} />
+        <meshStandardMaterial
+          map={cobblestoneTexture || undefined}
+          color="#221a14"
+          roughness={0.18}
+          metalness={0.45}
+        />
       </mesh>
 
       {/* Wet Puddle Sheen in Foreground reflecting Paris sunset & Eiffel Tower (Photo 1 & 2) */}
       <mesh position={[0, 0.08, 104]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[14, 28]} />
-        <meshStandardMaterial color="#0a0805" roughness={0.03} metalness={0.96} />
+        <meshStandardMaterial color="#080604" roughness={0.02} metalness={0.96} />
       </mesh>
       <mesh position={[-3.5, 0.07, 72]} rotation={[-Math.PI / 2, 0, 0.08]}>
         <planeGeometry args={[8, 34]} />
-        <meshStandardMaterial color="#0c0906" roughness={0.05} metalness={0.93} />
+        <meshStandardMaterial color="#0a0805" roughness={0.04} metalness={0.93} />
       </mesh>
 
-      {/* Sidewalks */}
+      {/* Photorealistic Parisian Granite Sidewalks */}
       <mesh position={[-13, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[5, 200]} />
-        <meshStandardMaterial color="#4a3e35" roughness={0.7} />
+        <meshStandardMaterial
+          map={sidewalkTexture || undefined}
+          color="#6b5b4e"
+          roughness={0.5}
+        />
       </mesh>
       <mesh position={[13, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[5, 200]} />
-        <meshStandardMaterial color="#4a3e35" roughness={0.7} />
+        <meshStandardMaterial
+          map={sidewalkTexture || undefined}
+          color="#6b5b4e"
+          roughness={0.5}
+        />
       </mesh>
 
-      {/* Buildings */}
+      {/* Photorealistic Parisian Haussmann Buildings */}
       {buildings.map((b, i) => (
         <group key={i} position={[b.x, b.h / 2, b.z]}>
+          {/* Main building block */}
           <mesh castShadow receiveShadow>
             <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color={b.color} roughness={0.8} />
+            <meshStandardMaterial color="#c2a378" roughness={0.8} />
           </mesh>
-          {/* Mansard roof */}
-          <mesh position={[0, b.h / 2 + 3, 0]}>
-            <boxGeometry args={[b.w - 1.5, 6, b.d - 1.5]} />
-            <meshStandardMaterial color="#404a52" roughness={0.5} />
+
+          {/* Detailed Photorealistic Haussmann Facade on Avenue-Facing Side */}
+          <mesh
+            position={[b.isLeft ? b.w / 2 + 0.06 : -b.w / 2 - 0.06, 0, 0]}
+            rotation={[0, b.isLeft ? Math.PI / 2 : -Math.PI / 2, 0]}
+          >
+            <planeGeometry args={[b.d, b.h]} />
+            <meshStandardMaterial
+              map={facadeTexture || undefined}
+              roughness={0.35}
+              metalness={0.05}
+              emissive="#ffaa33"
+              emissiveIntensity={0.12}
+            />
+          </mesh>
+
+          {/* Slate Mansard roof */}
+          <mesh position={[0, b.h / 2 + 3.5, 0]}>
+            <boxGeometry args={[b.w - 1.5, 7, b.d - 1.5]} />
+            <meshStandardMaterial color="#333d45" roughness={0.4} metalness={0.3} />
           </mesh>
         </group>
       ))}
