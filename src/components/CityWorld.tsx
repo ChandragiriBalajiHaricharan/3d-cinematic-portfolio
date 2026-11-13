@@ -166,7 +166,7 @@ export function RealManCharacter({
 }
 
 // ==============================================================
-// 2C. REAL 3D CARBON BIKE (bike.glb)
+// 2C. REAL 3D CARBON BIKE (Custom PBR Cafe Racer / Sports Bike)
 // ==============================================================
 export function RealCarbonBike({
   position = [1.8, 0, 95],
@@ -175,36 +175,100 @@ export function RealCarbonBike({
   position?: [number, number, number];
   rotation?: [number, number, number];
 }) {
-  const { scene } = useGLTF("/models/bike.glb");
-
-  const model = useMemo(() => {
-    const clone = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(clone);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-
-    // Bike scale ~1.4 units
-    const targetHeight = 1.4;
-    const s = size.y > 0 ? targetHeight / size.y : 1;
-    clone.scale.set(s, s, s);
-    clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
-
-    clone.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = true;
-      }
-    });
-
-    const grp = new THREE.Group();
-    grp.add(clone);
-    return grp;
-  }, [scene]);
-
   return (
     <group position={position} rotation={rotation}>
-      <primitive object={model} />
+      {/* Front & Rear Wheels (Tires + Rims + Spokes) */}
+      <group position={[0, 0.45, -1.05]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
+          <torusGeometry args={[0.42, 0.08, 16, 32]} />
+          <meshStandardMaterial color="#111" roughness={0.9} />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.34, 0.34, 0.04, 24]} />
+          <meshStandardMaterial color="#222" metalness={0.9} roughness={0.3} />
+        </mesh>
+        {/* Brake Disc */}
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.26, 0.26, 0.05, 16]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.95} roughness={0.2} />
+        </mesh>
+      </group>
+
+      <group position={[0, 0.45, 1.05]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
+          <torusGeometry args={[0.42, 0.08, 16, 32]} />
+          <meshStandardMaterial color="#111" roughness={0.9} />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.34, 0.34, 0.04, 24]} />
+          <meshStandardMaterial color="#222" metalness={0.9} roughness={0.3} />
+        </mesh>
+        {/* Rear Sprocket & Disc */}
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.05, 16]} />
+          <meshStandardMaterial color="#64748b" metalness={0.9} roughness={0.25} />
+        </mesh>
+      </group>
+
+      {/* Main Frame / Carbon Trellis Chassis */}
+      <mesh position={[0, 0.72, 0]} castShadow>
+        <boxGeometry args={[0.28, 0.42, 1.4]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.25} />
+      </mesh>
+
+      {/* Engine Block with Cooling Fins */}
+      <mesh position={[0, 0.52, -0.1]} castShadow>
+        <boxGeometry args={[0.34, 0.36, 0.6]} />
+        <meshStandardMaterial color="#334155" metalness={0.95} roughness={0.2} />
+      </mesh>
+
+      {/* Sculpted Fuel Tank (Matte Dark Navy / Carbon) */}
+      <mesh position={[0, 0.95, -0.28]} rotation={[-0.15, 0, 0]} castShadow>
+        <boxGeometry args={[0.36, 0.28, 0.75]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.7} roughness={0.3} />
+      </mesh>
+
+      {/* Racing Leather Seat */}
+      <mesh position={[0, 0.88, 0.38]} rotation={[0.08, 0, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.12, 0.6]} />
+        <meshStandardMaterial color="#18181b" roughness={0.85} />
+      </mesh>
+
+      {/* Gold Front Forks */}
+      <mesh position={[-0.12, 0.72, -0.85]} rotation={[0.35, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.035, 0.035, 0.85, 12]} />
+        <meshStandardMaterial color="#eab308" metalness={0.9} roughness={0.15} />
+      </mesh>
+      <mesh position={[0.12, 0.72, -0.85]} rotation={[0.35, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.035, 0.035, 0.85, 12]} />
+        <meshStandardMaterial color="#eab308" metalness={0.9} roughness={0.15} />
+      </mesh>
+
+      {/* Clip-on Handlebars */}
+      <mesh position={[0, 1.05, -0.72]}>
+        <cylinderGeometry args={[0.02, 0.02, 0.62, 8]} />
+        <meshStandardMaterial color="#475569" metalness={0.9} roughness={0.2} />
+      </mesh>
+
+      {/* Swept Chrome Dual Exhaust Pipes */}
+      <mesh position={[0.2, 0.42, 0.45]} rotation={[-0.2, 0.1, 0]} castShadow>
+        <cylinderGeometry args={[0.045, 0.055, 0.9, 12]} />
+        <meshStandardMaterial color="#cbd5e1" metalness={0.98} roughness={0.1} />
+      </mesh>
+
+      {/* Halo LED Projector Headlight */}
+      <mesh position={[0, 0.95, -0.92]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.06, 20]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      <pointLight position={[0, 0.95, -1.0]} intensity={6} color="#ffffff" distance={12} />
+
+      {/* LED Tail Bar */}
+      <mesh position={[0, 0.92, 0.72]}>
+        <boxGeometry args={[0.2, 0.04, 0.04]} />
+        <meshBasicMaterial color="#ef4444" />
+      </mesh>
+      <pointLight position={[0, 0.92, 0.76]} intensity={3} color="#ef4444" distance={5} />
     </group>
   );
 }
