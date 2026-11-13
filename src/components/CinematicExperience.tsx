@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ScrollControls, Scroll, useScroll } from "@react-three/drei";
 import * as THREE from "three";
@@ -9,6 +9,8 @@ import {
   EiffelTower,
   ParisFerrisWheel,
   CityBoulevard,
+  RealManCharacter,
+  RealCarbonBike,
   BikeRider,
   OceanWater,
   Speedboat,
@@ -233,18 +235,23 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       {/* Atmospheric Paris Sunset & Clouds */}
       <AtmosphericSky />
 
-      {/* ACT 1: Paris Eiffel Tower at center of attention */}
-      <EiffelTower position={[0, 0, -45]} />
+      {/* ACT 1: Real 3D Eiffel Tower Model (eiffel.glb) */}
+      <Suspense fallback={null}>
+        <EiffelTower position={[0, 0, -50]} />
+      </Suspense>
 
       {/* ACT 1: Paris Ferris Wheel on skyline (Photo 1 & 2) */}
       <ParisFerrisWheel position={[68, 0, -50]} />
 
-      {/* ACT 3: Paris Boulevard with Haussmann buildings and pier */}
+      {/* ACT 3: Paris Boulevard with 3D Haussmann buildings, trees and pier */}
       <CityBoulevard />
 
-      {/* ACT 3: Motorcycle & Rider (Controlled via direct ref) */}
+      {/* Real 3D Man & Carbon Bike roaming the city of Paris */}
       <group ref={bikeGroupRef}>
-        <BikeRider />
+        <Suspense fallback={null}>
+          <RealManCharacter position={[0, 0, 0.5]} rotation={[0, Math.PI, 0]} />
+          <RealCarbonBike position={[1.8, 0, 0]} rotation={[0, Math.PI / 2 + 0.15, 0]} />
+        </Suspense>
       </group>
 
       {/* ACT 4 & 5: Vast Turquoise Ocean (Photo 5 & 6) */}

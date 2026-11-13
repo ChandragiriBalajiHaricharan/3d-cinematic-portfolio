@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, Suspense } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 // ==============================================================
@@ -38,11 +39,10 @@ export function AtmosphericSky() {
 }
 
 // ==============================================================
-// 2. EIFFEL TOWER (ACT 1: First camera focus)
+// 2. REAL 3D EIFFEL TOWER MODEL (eiffel.glb)
 // ==============================================================
-export function EiffelTower({ position = [0, 0, -45] }: { position?: [number, number, number] }) {
-  const ironColor = "#140e08";
-  const lightGold = "#ffb040";
+export function EiffelTower({ position = [0, 0, -50] }: { position?: [number, number, number] }) {
+  const { scene } = useGLTF("/models/eiffel.glb");
   const beaconBeamRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -51,95 +51,55 @@ export function EiffelTower({ position = [0, 0, -45] }: { position?: [number, nu
     }
   });
 
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // Scale so height is ~125 units
+    const targetHeight = 125;
+    const s = size.y > 0 ? targetHeight / size.y : 1;
+    clone.scale.set(s, s, s);
+    clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+
+    // Warm golden hour metallic lighting on iron latticework
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const m = child as THREE.Mesh;
+        m.castShadow = true;
+        m.receiveShadow = true;
+        if (m.material) {
+          (m.material as THREE.MeshStandardMaterial).color = new THREE.Color("#4a3728");
+          (m.material as THREE.MeshStandardMaterial).roughness = 0.55;
+          (m.material as THREE.MeshStandardMaterial).metalness = 0.85;
+        }
+      }
+    });
+
+    const grp = new THREE.Group();
+    grp.add(clone);
+    return grp;
+  }, [scene]);
+
   return (
     <group position={position}>
-      {/* 4 Corner Legs */}
-      {[
-        [-12, 0, -12],
-        [12, 0, -12],
-        [-12, 0, 12],
-        [12, 0, 12],
-      ].map(([x, y, z], i) => (
-        <group key={i} position={[x, y + 16, z]} rotation={[x > 0 ? 0.22 : -0.22, 0, z > 0 ? -0.22 : 0.22]}>
-          <mesh>
-            <boxGeometry args={[4.5, 34, 4.5]} />
-            <meshStandardMaterial color={ironColor} roughness={0.7} metalness={0.9} />
-          </mesh>
-          {[-8, 0, 8].map((ly, j) => (
-            <mesh key={j} position={[0, ly, 0]} rotation={[0, 0, 0.78]}>
-              <boxGeometry args={[5, 0.6, 4.6]} />
-              <meshStandardMaterial color="#2a2015" metalness={0.8} />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      <primitive object={model} />
+      {/* Tower gold lighting */}
+      <pointLight position={[0, 45, 0]} intensity={45} color="#ffa533" distance={160} />
+      <pointLight position={[0, 85, 0]} intensity={35} color="#ffcc66" distance={140} />
 
-      {/* Main Arch */}
-      <mesh position={[0, 14, 0]}>
-        <torusGeometry args={[11, 1.2, 12, 24, Math.PI]} />
-        <meshStandardMaterial color={ironColor} metalness={0.9} />
-      </mesh>
-
-      {/* Platform 1 */}
-      <mesh position={[0, 32, 0]}>
-        <boxGeometry args={[28, 3.5, 28]} />
-        <meshStandardMaterial color={ironColor} roughness={0.6} metalness={0.9} />
-      </mesh>
-      <mesh position={[0, 32, 0]}>
-        <boxGeometry args={[28.6, 0.9, 28.6]} />
-        <meshBasicMaterial color={lightGold} />
-      </mesh>
-
-      {/* Tier 2 Legs */}
-      {[
-        [-6, 34, -6],
-        [6, 34, -6],
-        [-6, 34, 6],
-        [6, 34, 6],
-      ].map(([x, y, z], i) => (
-        <group key={i} position={[x, y + 18, z]} rotation={[x > 0 ? 0.16 : -0.16, 0, z > 0 ? -0.16 : 0.16]}>
-          <mesh>
-            <boxGeometry args={[3, 38, 3]} />
-            <meshStandardMaterial color={ironColor} roughness={0.7} metalness={0.9} />
-          </mesh>
-        </group>
-      ))}
-
-      {/* Platform 2 */}
-      <mesh position={[0, 70, 0]}>
-        <boxGeometry args={[16, 2.5, 16]} />
-        <meshStandardMaterial color={ironColor} roughness={0.6} metalness={0.9} />
-      </mesh>
-      <mesh position={[0, 70, 0]}>
-        <boxGeometry args={[16.4, 0.7, 16.4]} />
-        <meshBasicMaterial color={lightGold} />
-      </mesh>
-
-      {/* Spire */}
-      <mesh position={[0, 105, 0]}>
-        <coneGeometry args={[4.2, 70, 4]} />
-        <meshStandardMaterial color={ironColor} roughness={0.7} metalness={0.9} />
-      </mesh>
-
-      {/* Beacon Tip */}
-      <mesh position={[0, 142, 0]}>
-        <cylinderGeometry args={[1.5, 1.8, 4, 12]} />
-        <meshStandardMaterial color="#222" metalness={1} />
-      </mesh>
-      <mesh position={[0, 146, 0]}>
-        <sphereGeometry args={[2, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
-      <pointLight position={[0, 146, 0]} intensity={45} color="#ffeebb" distance={250} />
-
-      {/* Sweeping Golden Beacon Light Beam across Paris sky */}
-      <group ref={beaconBeamRef} position={[0, 146, 0]}>
+      {/* Sweeping Golden Paris Beacon Searchlight across sky */}
+      <group ref={beaconBeamRef} position={[0, 122, 0]}>
+        <pointLight intensity={50} color="#fff6dd" distance={240} />
         <mesh position={[0, 0, 80]} rotation={[Math.PI / 2 + 0.12, 0, 0]}>
-          <coneGeometry args={[14, 160, 16, 1, true]} />
+          <coneGeometry args={[15, 160, 16, 1, true]} />
           <meshBasicMaterial
             color="#fff2cc"
             transparent
-            opacity={0.16}
+            opacity={0.18}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -147,6 +107,95 @@ export function EiffelTower({ position = [0, 0, -45] }: { position?: [number, nu
       </group>
     </group>
   );
+}
+
+// ==============================================================
+// 2B. REAL 3D CHARACTER (person.glb - Real man roaming Paris)
+// ==============================================================
+export function RealManCharacter({
+  position = [0, 0, 96],
+  rotation = [0, Math.PI, 0],
+}: {
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+}) {
+  const { scene } = useGLTF("/models/person.glb");
+
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // Real human scale ~2.2 units
+    const targetHeight = 2.2;
+    const s = size.y > 0 ? targetHeight / size.y : 1;
+    clone.scale.set(s, s, s);
+    clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true;
+      }
+    });
+
+    const grp = new THREE.Group();
+    grp.add(clone);
+    return grp;
+  }, [scene]);
+
+  return (
+    <group position={position} rotation={rotation}>
+      <primitive object={model} />
+    </group>
+  );
+}
+
+// ==============================================================
+// 2C. REAL 3D CARBON BIKE (bike.glb)
+// ==============================================================
+export function RealCarbonBike({
+  position = [1.8, 0, 95],
+  rotation = [0, Math.PI / 2 + 0.15, 0],
+}: {
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+}) {
+  const { scene } = useGLTF("/models/bike.glb");
+
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // Bike scale ~1.4 units
+    const targetHeight = 1.4;
+    const s = size.y > 0 ? targetHeight / size.y : 1;
+    clone.scale.set(s, s, s);
+    clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true;
+      }
+    });
+
+    const grp = new THREE.Group();
+    grp.add(clone);
+    return grp;
+  }, [scene]);
+
+  return (
+    <group position={position} rotation={rotation}>
+      <primitive object={model} />
+    </group>
+  );
+}
 }
 
 // ==============================================================
@@ -214,7 +263,7 @@ export function CityBoulevard() {
     const tex = loader.load("/textures/wet_paris_cobblestone.jpg");
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(3, 24);
+    tex.repeat.set(4, 28);
     tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
   }, []);
@@ -230,68 +279,50 @@ export function CityBoulevard() {
     return tex;
   }, []);
 
-  const skylineTexture = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load("/textures/eiffel_tower_sunset.jpg");
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }, []);
-
   const buildings = useMemo(() => {
     const list: Array<{ x: number; z: number; w: number; h: number; d: number; isLeft: boolean }> = [];
-    // Paris street buildings from z: 120 down to z: -60
+    // Spacious grand Paris boulevard: buildings set back at x = -34 and x = 34
     for (let z = 120; z >= -60; z -= 24) {
-      list.push({ x: -25, z, w: 20, h: 26, d: 23, isLeft: true });
-      list.push({ x: 25, z, w: 20, h: 26, d: 23, isLeft: false });
+      list.push({ x: -34, z, w: 20, h: 26, d: 23, isLeft: true });
+      list.push({ x: 34, z, w: 20, h: 26, d: 23, isLeft: false });
     }
     return list;
   }, []);
 
   return (
     <group>
-      {/* Photorealistic Paris Sunset & Eiffel Tower Horizon Backdrop (Photo 1 & 2) */}
-      <mesh position={[0, 46, -58]}>
-        <planeGeometry args={[150, 85]} />
-        {skylineTexture ? (
-          <meshBasicMaterial map={skylineTexture} toneMapped={false} />
-        ) : (
-          <meshBasicMaterial color="#1a120b" />
-        )}
-      </mesh>
-
-      {/* Photorealistic Wet Paris Cobblestone Road */}
+      {/* Real Wet Paris Cobblestone Road (Spacious 28-unit width) */}
       <mesh position={[0, 0.05, 30]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[24, 200]} />
+        <planeGeometry args={[28, 200]} />
         <meshStandardMaterial
           map={cobblestoneTexture || undefined}
           color="#221a14"
-          roughness={0.18}
+          roughness={0.16}
           metalness={0.45}
         />
       </mesh>
 
       {/* Wet Puddle Sheen in Foreground reflecting Paris sunset & Eiffel Tower (Photo 1 & 2) */}
       <mesh position={[0, 0.08, 104]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[14, 28]} />
+        <planeGeometry args={[16, 28]} />
         <meshStandardMaterial color="#080604" roughness={0.02} metalness={0.96} />
       </mesh>
-      <mesh position={[-3.5, 0.07, 72]} rotation={[-Math.PI / 2, 0, 0.08]}>
-        <planeGeometry args={[8, 34]} />
+      <mesh position={[-4, 0.07, 72]} rotation={[-Math.PI / 2, 0, 0.08]}>
+        <planeGeometry args={[10, 34]} />
         <meshStandardMaterial color="#0a0805" roughness={0.04} metalness={0.93} />
       </mesh>
 
-      {/* Photorealistic Parisian Granite Sidewalks */}
-      <mesh position={[-13, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[5, 200]} />
+      {/* Parisian Granite Sidewalks (8-unit wide promenades on both sides) */}
+      <mesh position={[-19, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10, 200]} />
         <meshStandardMaterial
           map={sidewalkTexture || undefined}
           color="#6b5b4e"
           roughness={0.5}
         />
       </mesh>
-      <mesh position={[13, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[5, 200]} />
+      <mesh position={[19, 0.15, 30]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10, 200]} />
         <meshStandardMaterial
           map={sidewalkTexture || undefined}
           color="#6b5b4e"
@@ -299,16 +330,40 @@ export function CityBoulevard() {
         />
       </mesh>
 
-      {/* Photorealistic Parisian Haussmann Buildings */}
+      {/* 3D Parisian Avenue Trees lining the sidewalks */}
+      {[-16, 16].map((tx) => (
+        <group key={tx}>
+          {[104, 80, 56, 32, 8, -16, -40].map((tz) => (
+            <group key={tz} position={[tx, 0, tz]}>
+              {/* Tree trunk */}
+              <mesh position={[0, 3.5, 0]}>
+                <cylinderGeometry args={[0.22, 0.35, 7, 8]} />
+                <meshStandardMaterial color="#3d2f23" roughness={0.9} />
+              </mesh>
+              {/* Layered spherical foliage canopies */}
+              <mesh position={[0, 7.5, 0]}>
+                <sphereGeometry args={[2.6, 12, 12]} />
+                <meshStandardMaterial color="#2d5a27" roughness={0.8} />
+              </mesh>
+              <mesh position={[0, 9.2, 0]}>
+                <sphereGeometry args={[1.9, 10, 10]} />
+                <meshStandardMaterial color="#3f7238" roughness={0.8} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+      ))}
+
+      {/* 3D Parisian Haussmann Architecture with Real Balconies & Storefronts */}
       {buildings.map((b, i) => (
         <group key={i} position={[b.x, b.h / 2, b.z]}>
-          {/* Main building block */}
+          {/* Main limestone building structure */}
           <mesh castShadow receiveShadow>
             <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color="#c2a378" roughness={0.8} />
+            <meshStandardMaterial color="#c2a378" roughness={0.75} />
           </mesh>
 
-          {/* Detailed Photorealistic Haussmann Facade on Avenue-Facing Side */}
+          {/* Detailed Facade on Avenue-Facing Side */}
           <mesh
             position={[b.isLeft ? b.w / 2 + 0.06 : -b.w / 2 - 0.06, 0, 0]}
             rotation={[0, b.isLeft ? Math.PI / 2 : -Math.PI / 2, 0]}
@@ -323,7 +378,37 @@ export function CityBoulevard() {
             />
           </mesh>
 
-          {/* Slate Mansard roof */}
+          {/* 3D Protruding Stone Balconies with Wrought-Iron Railings on Upper Floors */}
+          {[1, 6, 11].map((by) => (
+            <group key={by} position={[b.isLeft ? b.w / 2 + 0.8 : -b.w / 2 - 0.8, by, 0]}>
+              {/* Stone balcony base */}
+              <mesh position={[0, -0.15, 0]}>
+                <boxGeometry args={[1.4, 0.3, b.d - 4]} />
+                <meshStandardMaterial color="#8c7860" roughness={0.7} />
+              </mesh>
+              {/* Black wrought iron railing */}
+              <mesh position={[b.isLeft ? 0.65 : -0.65, 0.5, 0]}>
+                <boxGeometry args={[0.08, 0.9, b.d - 4]} />
+                <meshStandardMaterial color="#111827" metalness={0.9} roughness={0.3} />
+              </mesh>
+            </group>
+          ))}
+
+          {/* 3D Ground Floor French Bistro Storefront with Striped Awning */}
+          <group position={[b.isLeft ? b.w / 2 + 1.2 : -b.w / 2 - 1.2, -b.h / 2 + 4, 0]}>
+            <mesh rotation={[0, 0, b.isLeft ? -0.35 : 0.35]}>
+              <boxGeometry args={[2.6, 0.25, b.d - 2]} />
+              <meshStandardMaterial color={b.isLeft ? "#b91c1c" : "#0369a1"} roughness={0.6} />
+            </mesh>
+            <pointLight
+              position={[b.isLeft ? 1.2 : -1.2, -0.8, 0]}
+              intensity={4}
+              distance={16}
+              color="#ffa533"
+            />
+          </group>
+
+          {/* Slate Mansard roof with decorative dormers */}
           <mesh position={[0, b.h / 2 + 3.5, 0]}>
             <boxGeometry args={[b.w - 1.5, 7, b.d - 1.5]} />
             <meshStandardMaterial color="#333d45" roughness={0.4} metalness={0.3} />
@@ -331,47 +416,37 @@ export function CityBoulevard() {
         </group>
       ))}
 
-      {/* Boulevard Street Lamps with warm ambient illumination */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const z = 110 - i * 16;
-        const hasLight = i < 4; // Add real pointlights to foreground lamps closest to camera
-        return (
-          <group key={i}>
-            <mesh position={[-10.5, 4, z]}>
-              <cylinderGeometry args={[0.08, 0.15, 8, 8]} />
-              <meshStandardMaterial color="#111" metalness={0.9} />
-            </mesh>
-            <mesh position={[-10.5, 8.2, z]}>
-              <octahedronGeometry args={[0.5]} />
-              <meshBasicMaterial color="#ffc366" />
-            </mesh>
-            {hasLight && (
-              <pointLight position={[-10.5, 8.2, z]} intensity={3.5} distance={16} color="#ffaa33" />
-            )}
-
-            <mesh position={[10.5, 4, z]}>
-              <cylinderGeometry args={[0.08, 0.15, 8, 8]} />
-              <meshStandardMaterial color="#111" metalness={0.9} />
-            </mesh>
-            <mesh position={[10.5, 8.2, z]}>
-              <octahedronGeometry args={[0.5]} />
-              <meshBasicMaterial color="#ffc366" />
-            </mesh>
-            {hasLight && (
-              <pointLight position={[10.5, 8.2, z]} intensity={3.5} distance={16} color="#ffaa33" />
-            )}
-          </group>
-        );
-      })}
+      {/* Boulevard Vintage Street Lamps with warm ambient illumination */}
+      {[-15, 15].map((lx) => (
+        <group key={lx}>
+          {[110, 90, 70, 50, 30, 10, -10, -30, -50].map((lz, idx) => (
+            <group key={lz} position={[lx, 0, lz]}>
+              {/* Cast iron lamp post */}
+              <mesh position={[0, 4, 0]}>
+                <cylinderGeometry args={[0.08, 0.18, 8, 8]} />
+                <meshStandardMaterial color="#111827" metalness={0.9} />
+              </mesh>
+              {/* Ornate hexagonal glowing lamp lantern */}
+              <mesh position={[0, 8.2, 0]}>
+                <octahedronGeometry args={[0.55]} />
+                <meshBasicMaterial color="#ffc366" />
+              </mesh>
+              {idx < 4 && (
+                <pointLight position={[0, 8.2, 0]} intensity={4.5} distance={18} color="#ffaa33" />
+              )}
+            </group>
+          ))}
+        </group>
+      ))}
 
       {/* Harbor Pier where motorcycle arrives and transitions to water */}
       <group position={[0, -0.2, -70]}>
         <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[28, 1.2, 24]} />
+          <boxGeometry args={[32, 1.2, 24]} />
           <meshStandardMaterial color="#30261f" roughness={0.9} />
         </mesh>
         {/* Pier wooden bollards */}
-        {[-12, -6, 6, 12].map((bx, idx) => (
+        {[-14, -7, 7, 14].map((bx, idx) => (
           <mesh key={idx} position={[bx, 1.2, -11]}>
             <cylinderGeometry args={[0.35, 0.35, 1.5, 12]} />
             <meshStandardMaterial color="#1f1813" roughness={0.9} />
