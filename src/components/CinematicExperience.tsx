@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useState, useEffect, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
+import { Text, Environment } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import {
@@ -128,77 +128,91 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 
     // Visibility management
     if (titleGroupRef.current) {
-      titleGroupRef.current.visible = r >= 0.12 && r < 0.32;
+      titleGroupRef.current.visible = r >= 0.14 && r < 0.28;
     }
     if (gantryGroupRef.current) {
       gantryGroupRef.current.visible = r >= 0.28 && r < 0.48;
     }
 
     // ==============================================================
-    // ACT 1: [0.00 -> 0.14] HERO EIFFEL TOWER & DAYLIGHT SKY (Image 1 match!)
-    // Low-angle dramatic camera looking up at Eiffel Tower in bright blue sky
+    // ACT 1: [0.00 -> 0.14] HERO EIFFEL TOWER & PARIS DUSK (UE5 Cinematic)
+    // Low-angle dramatic camera looking up at Eiffel Tower in golden Paris sky
     // ==============================================================
     if (r < 0.14) {
       const p = r / 0.14;
-      const swayX = Math.sin(time * 0.7) * 0.2;
-      const swayY = Math.cos(time * 0.5) * 0.12;
-      camTarget.set(7 + swayX, 8 + swayY - p * 2, 28 - p * 8);
-      lookTarget.set(-2, 42, -50);
+      const swayX = Math.sin(time * 0.7) * 0.15;
+      const swayY = Math.cos(time * 0.5) * 0.1;
+      camTarget.set(swayX, 5.0 + swayY, 52 - p * 16);
+      lookTarget.set(0, 38, -50);
       currentVehicleX = 0;
       currentVehicleZ = 95;
       globalAudio.update("idle", 0.1);
     }
     // ==============================================================
-    // ACT 2: [0.14 -> 0.28] 3D GIANT CITY TITLE (Image 4 match!)
-    // Camera moves to boulevard level, framing 3D title in city sky
+    // ACT 2: [0.14 -> 0.28] 3D GIANT CITY TITLE (Film-Quality Framing)
+    // Camera descends to boulevard level, framing 3D title in golden dusk sky
     // ==============================================================
     else if (r < 0.28) {
       const p = (r - 0.14) / 0.14;
-      camTarget.set(0, 10 - p * 4, 38 - p * 10);
-      lookTarget.set(0, 11 - p * 3, 8);
+      camTarget.set(0, 4.2 - p * 0.8, 36 - p * 14);
+      lookTarget.set(0, 8.5 - p * 3.0, 5);
       currentVehicleX = 0;
       currentVehicleZ = 95;
       globalAudio.update("idle", 0.2);
     }
     // ==============================================================
-    // ACT 3: [0.28 -> 0.48] FREEWAY RAMP VEHICLE CHASE (Image 5 match!)
-    // Speeds up elevated freeway ramp towards overhead gantry 'STILL WITH ME?'
+    // ACT 3: [0.28 -> 0.48] FREEWAY RAMP VEHICLE CHASE (Supercar Chase)
+    // Smooth climb up elevated freeway ramp with realistic pitch & elevation
     // ==============================================================
     else if (r < 0.48) {
       const p = (r - 0.28) / 0.20;
-      currentVehicleZ = 95 - p * 160;
+      currentVehicleZ = 65 - p * 145; // 65 -> -80
       currentVehicleX = Math.sin(p * Math.PI * 4) * 1.5;
-      currentVehicleLean = Math.cos(p * Math.PI * 4) * 0.18;
-      const vehicleY = currentVehicleZ < 20 ? (20 - currentVehicleZ) * 0.08 : 0;
+      currentVehicleLean = Math.cos(p * Math.PI * 4) * 0.14;
 
-      camTarget.set(currentVehicleX * 0.6, vehicleY + 3.4, currentVehicleZ + 7.5);
-      lookTarget.set(currentVehicleX, vehicleY + 2.0, currentVehicleZ - 18);
-      globalAudio.update("bike", 0.75);
+      let carY = 0.08;
+      let carPitch = 0;
+      if (currentVehicleZ > -17.5) {
+        carY = 0.08;
+        carPitch = 0;
+      } else if (currentVehicleZ >= -72.0) {
+        const rampDist = -17.5 - currentVehicleZ;
+        carY = 0.65 + rampDist * 0.162;
+        carPitch = -0.161; // Pitch car nose up matching ramp angle
+      } else {
+        carY = 9.48;
+        carPitch = 0;
+      }
+
+      camTarget.set(currentVehicleX * 0.7, carY + 2.8, currentVehicleZ + 7.2);
+      lookTarget.set(currentVehicleX * 0.9, carY + 1.4, currentVehicleZ - 18);
+      globalAudio.update("bike", 0.85);
     }
     // ==============================================================
-    // ACT 4: [0.48 -> 0.58] SPEEDBOAT ON TURQUOISE SEA (Image 2 match!)
-    // Sweeping high aerial drone view over speedboat leaving foamy wake
+    // ACT 4: [0.48 -> 0.60] SPEEDBOAT ON TURQUOISE SEA (High Aerial Drone)
+    // High aerial drone view over speedboat cutting through ocean waves
     // ==============================================================
-    else if (r < 0.58) {
-      const p = (r - 0.48) / 0.10;
-      currentBoatZ = -70 - p * 60;
+    else if (r < 0.60) {
+      const p = (r - 0.48) / 0.12;
+      currentBoatZ = -70 - p * 75;
       currentBoatX = 0;
 
-      camTarget.set(0, 24 + p * 6, currentBoatZ + 36);
-      lookTarget.set(0, 0, currentBoatZ - 40);
+      camTarget.set(0, 24 + p * 6, currentBoatZ + 40);
+      lookTarget.set(0, 0, currentBoatZ - 45);
       globalAudio.update("boat", 0.85);
     }
     // ==============================================================
-    // ACT 5: [0.58 -> 0.88] SPEEDBOAT CRUISES PAST FLOATING BARGES (Photo 5 match!)
+    // ACT 5: [0.60 -> 0.88] SPEEDBOAT CRUISES PAST FLOATING BARGES
+    // Panning camera past 4 floating tech barge platforms on ocean
     // ==============================================================
     else if (r < 0.88) {
-      const p = (r - 0.58) / 0.30;
-      currentBoatZ = -130 - p * 340;
-      currentBoatX = Math.sin(p * Math.PI * 4) * 2.2;
+      const p = (r - 0.60) / 0.28;
+      currentBoatZ = -145 - p * 320;
+      currentBoatX = Math.sin(p * Math.PI * 4) * 2.5;
 
-      camTarget.set(currentBoatX * 0.7, 4.2, currentBoatZ + 13);
+      camTarget.set(currentBoatX * 0.7, 4.8, currentBoatZ + 14);
       const gazeSide = Math.sin(p * Math.PI * 4);
-      lookTarget.set(-gazeSide * 6.5, 6.0, currentBoatZ - 20);
+      lookTarget.set(-gazeSide * 8, 6.2, currentBoatZ - 20);
       globalAudio.update("boat", 0.78);
     }
     // ==============================================================
@@ -206,21 +220,33 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     // ==============================================================
     else {
       const p = (r - 0.88) / 0.12;
-      currentBoatZ = -470 - p * 30;
+      currentBoatZ = -465 - p * 30;
       currentBoatX = 0;
 
-      camTarget.set(0, 7 + p * 4, currentBoatZ + 20);
+      camTarget.set(0, 8 + p * 3, currentBoatZ + 24);
       lookTarget.set(0, 8, currentBoatZ - 25);
       globalAudio.update("idle", 0.1);
     }
 
-    // Direct GPU Three.js mutation for Highway Vehicle
+    // Direct GPU Three.js mutation for Highway Supercar
     if (vehicleGroupRef.current) {
-      if (r < 0.48) {
+      if (r >= 0.24 && r < 0.50) {
         vehicleGroupRef.current.visible = true;
-        const vehicleY = currentVehicleZ < 20 ? (20 - currentVehicleZ) * 0.08 : 0;
-        vehicleGroupRef.current.position.set(currentVehicleX, vehicleY, currentVehicleZ);
-        vehicleGroupRef.current.rotation.z = -currentVehicleLean;
+        let carY = 0.08;
+        let carPitch = 0;
+        if (currentVehicleZ > -17.5) {
+          carY = 0.08;
+          carPitch = 0;
+        } else if (currentVehicleZ >= -72.0) {
+          const rampDist = -17.5 - currentVehicleZ;
+          carY = 0.65 + rampDist * 0.162;
+          carPitch = -0.161;
+        } else {
+          carY = 9.48;
+          carPitch = 0;
+        }
+        vehicleGroupRef.current.position.set(currentVehicleX, carY, currentVehicleZ);
+        vehicleGroupRef.current.rotation.set(carPitch, 0, -currentVehicleLean);
       } else {
         vehicleGroupRef.current.visible = false;
       }
@@ -228,12 +254,12 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 
     // Direct GPU Three.js mutation for Speedboat
     if (boatGroupRef.current) {
-      if (r >= 0.44) {
+      if (r >= 0.46) {
         boatGroupRef.current.visible = true;
         const waterBob = Math.sin(time * 3.5) * 0.05;
         const waterRoll = Math.sin(time * 2.8) * 0.03;
         boatGroupRef.current.position.set(currentBoatX, -0.05 + waterBob, currentBoatZ);
-        boatGroupRef.current.rotation.z = waterRoll;
+        boatGroupRef.current.rotation.set(0, 0, waterRoll);
       } else {
         boatGroupRef.current.visible = false;
       }
@@ -246,17 +272,20 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 
   return (
     <>
-      <ambientLight intensity={1.2} color="#ffffff" />
+      {/* 4K HDR Environment Map for Realistic PBR Reflections */}
+      <Environment files="/textures/sunset.hdr" />
+
+      <ambientLight intensity={0.6} color="#ffffff" />
       <directionalLight
-        position={[60, 85, -45]}
-        intensity={3.4}
+        position={[60, 65, -45]}
+        intensity={2.6}
         color="#fff1cc"
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0005}
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0003}
       />
-      <directionalLight position={[-40, 45, 60]} intensity={1.2} color="#bae6fd" />
-      <fog attach="fog" args={["#7dd3fc", 160, 950]} />
+      <directionalLight position={[-40, 45, 60]} intensity={0.9} color="#93c5fd" />
+      <fog attach="fog" args={["#7dd3fc", 140, 900]} />
 
       {/* Atmospheric Daylight Sky */}
       <AtmosphericSky />
@@ -270,10 +299,10 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       <ParisFerrisWheel position={[72, 0, -50]} />
 
       {/* ACT 2: 3D Title in City Sky (Properly Scaled & Framed) */}
-      <group ref={titleGroupRef} position={[0, 12, 10]}>
+      <group ref={titleGroupRef} position={[0, 16, 5]}>
         <Text
-          position={[0, 2.8, 0]}
-          fontSize={1.25}
+          position={[0, 3.2, 0]}
+          fontSize={1.4}
           color="#ffffff"
           anchorX="center"
           anchorY="middle"
@@ -282,8 +311,8 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
           CHANDRAGIRI BALAJI HARICHARAN
         </Text>
         <Text
-          position={[0, 0.9, 0]}
-          fontSize={0.75}
+          position={[0, 1.2, 0]}
+          fontSize={0.8}
           color="#38bdf8"
           anchorX="center"
           anchorY="middle"
@@ -292,8 +321,8 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
           AI AGENT ENGINEER // BACKEND ARCHITECT
         </Text>
         <Text
-          position={[0, -0.6, 0]}
-          fontSize={0.4}
+          position={[0, -0.5, 0]}
+          fontSize={0.42}
           color="#fde047"
           anchorX="center"
           anchorY="middle"
@@ -324,10 +353,10 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       {/* ACT 3: Paris Boulevard with 3D Haussmann buildings */}
       <CityBoulevard />
 
-      {/* Highway Vehicle: Supercar */}
+      {/* Highway Vehicle: Supercar (Driving forward down -Z) */}
       <group ref={vehicleGroupRef}>
         <Suspense fallback={null}>
-          <SupercarVehicle position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
+          <SupercarVehicle position={[0, 0, 0]} rotation={[0, 0, 0]} />
         </Suspense>
       </group>
 
@@ -363,13 +392,13 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
         );
       })}
 
-      {/* High-Performance Bloom (Balanced, No White Washout) */}
+      {/* Balanced Cinematic Bloom & Tone Processing */}
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.82}
-          intensity={0.45}
+          luminanceThreshold={0.88}
+          intensity={0.35}
         />
-        <Vignette offset={0.2} darkness={0.6} />
+        <Vignette offset={0.2} darkness={0.5} />
       </EffectComposer>
     </>
   );

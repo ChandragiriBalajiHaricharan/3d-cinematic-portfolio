@@ -100,20 +100,20 @@ export function EiffelTower({ position = [0, 0, -50] }: { position?: [number, nu
     <group position={position}>
       <primitive object={model} />
 
-      {/* Sweeping 360° Eiffel Tower Beacon Light Beam */}
+      {/* Sweeping 360° Eiffel Tower Beacon Light Beam (Subtle & Atmospheric) */}
       <group ref={beaconRef} position={[0, 126, 0]}>
-        <mesh position={[0, 0, 70]} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[16, 140, 16, 1, true]} />
+        <mesh position={[0, 0, 40]} rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[8, 80, 16, 1, true]} />
           <meshBasicMaterial
             color="#fff8db"
             transparent
-            opacity={0.3}
+            opacity={0.08}
             side={THREE.DoubleSide}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={14} distance={80} color="#ffedd5" />
+        <pointLight position={[0, 0, 0]} intensity={2.5} distance={50} color="#ffedd5" />
       </group>
     </group>
   );
@@ -205,7 +205,7 @@ export function RealManCharacter({
 }
 
 // ==============================================================
-// 5. HIGHWAY SUPERCAR (ferrari.glb - Fast Rendering, No Heavy Spot Shadows)
+// 5. HIGHWAY SUPERCAR (ferrari.glb - Front faces -Z natively)
 // ==============================================================
 export function SupercarVehicle({
   position = [0, 0, 0],
@@ -224,9 +224,11 @@ export function SupercarVehicle({
     const center = new THREE.Vector3();
     box.getCenter(center);
 
+    // Car scale ~4.8m length
     const targetLength = 4.8;
     const s = size.z > 0 ? targetLength / size.z : 1;
     clone.scale.set(s, s, s);
+    // Align so bottom of wheels sits at y = 0
     clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
 
     clone.traverse((child) => {
@@ -253,9 +255,9 @@ export function SupercarVehicle({
     <group position={position} rotation={rotation}>
       <primitive object={carModel} />
 
-      {/* Forward Headlight Beam Cones (Lightweight - No Shadow Pass) */}
+      {/* Forward Xenon Headlights (Pointing towards -Z forward down the road) */}
       <spotLight
-        position={[-0.8, 0.7, -2.4]}
+        position={[-0.8, 0.7, -2.2]}
         target-position={[-0.8, 0.2, -35]}
         angle={0.55}
         penumbra={0.4}
@@ -264,7 +266,7 @@ export function SupercarVehicle({
         distance={45}
       />
       <spotLight
-        position={[0.8, 0.7, -2.4]}
+        position={[0.8, 0.7, -2.2]}
         target-position={[0.8, 0.2, -35]}
         angle={0.55}
         penumbra={0.4}
@@ -273,16 +275,16 @@ export function SupercarVehicle({
         distance={45}
       />
 
-      {/* Red LED Taillights with Volumetric Streaks */}
-      <mesh position={[-0.75, 0.75, 2.3]}>
+      {/* Red LED Taillights (At +Z rear of car, facing chase camera) */}
+      <mesh position={[-0.75, 0.75, 2.2]}>
         <boxGeometry args={[0.35, 0.1, 0.05]} />
         <meshBasicMaterial color="#ff1133" />
       </mesh>
-      <mesh position={[0.75, 0.75, 2.3]}>
+      <mesh position={[0.75, 0.75, 2.2]}>
         <boxGeometry args={[0.35, 0.1, 0.05]} />
         <meshBasicMaterial color="#ff1133" />
       </mesh>
-      <pointLight position={[0, 0.75, 2.5]} intensity={8} color="#ff1133" distance={8} />
+      <pointLight position={[0, 0.75, 2.4]} intensity={8} color="#ff1133" distance={8} />
 
       {/* Neon Cyan Underglow */}
       <pointLight position={[0, 0.2, 0]} intensity={6} color="#06b6d4" distance={5} />
@@ -418,13 +420,94 @@ export function CityBoulevard() {
         </group>
       ))}
 
-      {/* Elevated Highway Freeway Ramp */}
+      {/* Elevated Highway Freeway Ramp (starts at z = -17.5, ascends to z = -72.0) */}
       <group position={[0, 0, -20]}>
-        <mesh position={[0, 4.5, -25]} rotation={[0.16, 0, 0]} receiveShadow>
+        {/* Main Ascending Asphalt Ramp */}
+        <mesh position={[0, 4.5, -25]} rotation={[0.161, 0, 0]} receiveShadow>
           <boxGeometry args={[14, 1.2, 55]} />
           <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.5} />
         </mesh>
+
+        {/* Ramp Guardrails (Left & Right) */}
+        <mesh position={[-6.8, 5.2, -25]} rotation={[0.161, 0, 0]}>
+          <boxGeometry args={[0.35, 1.1, 55]} />
+          <meshStandardMaterial color="#64748b" metalness={0.75} roughness={0.25} />
+        </mesh>
+        <mesh position={[6.8, 5.2, -25]} rotation={[0.161, 0, 0]}>
+          <boxGeometry args={[0.35, 1.1, 55]} />
+          <meshStandardMaterial color="#64748b" metalness={0.75} roughness={0.25} />
+        </mesh>
+
+        {/* Guardrail Reflective Safety Edges */}
+        <mesh position={[-6.6, 5.35, -25]} rotation={[0.161, 0, 0]}>
+          <boxGeometry args={[0.06, 0.12, 55]} />
+          <meshBasicMaterial color="#f59e0b" />
+        </mesh>
+        <mesh position={[6.6, 5.35, -25]} rotation={[0.161, 0, 0]}>
+          <boxGeometry args={[0.06, 0.12, 55]} />
+          <meshBasicMaterial color="#f59e0b" />
+        </mesh>
+
+        {/* White Center Lane Divider Stripe on Ramp */}
+        <mesh position={[0, 5.12, -25]} rotation={[0.161, 0, 0]}>
+          <planeGeometry args={[0.25, 52]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.85} />
+        </mesh>
+
+        {/* Elevated Overpass Continuation (from z = -52.5 down to -100) */}
+        <mesh position={[0, 8.9, -75]} receiveShadow>
+          <boxGeometry args={[14, 1.2, 50]} />
+          <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.5} />
+        </mesh>
+        <mesh position={[-6.8, 9.6, -75]}>
+          <boxGeometry args={[0.35, 1.1, 50]} />
+          <meshStandardMaterial color="#64748b" metalness={0.75} roughness={0.25} />
+        </mesh>
+        <mesh position={[6.8, 9.6, -75]}>
+          <boxGeometry args={[0.35, 1.1, 50]} />
+          <meshStandardMaterial color="#64748b" metalness={0.75} roughness={0.25} />
+        </mesh>
+
+        {/* Heavy Engineered Concrete Support Pillars */}
+        {[-30, -45, -60, -75, -90].map((pz) => (
+          <group key={pz} position={[0, 0, pz]}>
+            <mesh position={[-5, 4.5, 0]}>
+              <cylinderGeometry args={[0.7, 0.9, 10, 14]} />
+              <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
+            </mesh>
+            <mesh position={[5, 4.5, 0]}>
+              <cylinderGeometry args={[0.7, 0.9, 10, 14]} />
+              <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
+            </mesh>
+          </group>
+        ))}
       </group>
+
+      {/* Classic Parisian Wrought-Iron Street Lamps along Boulevard Sidewalks */}
+      {[-14.5, 14.5].map((lx) => (
+        <group key={lx}>
+          {[90, 60, 30, 5].map((lz) => (
+            <group key={lz} position={[lx, 0, lz]}>
+              {/* Lamp Post */}
+              <mesh position={[0, 2.2, 0]}>
+                <cylinderGeometry args={[0.08, 0.14, 4.4, 8]} />
+                <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} />
+              </mesh>
+              {/* Lantern Housing */}
+              <mesh position={[0, 4.5, 0]}>
+                <cylinderGeometry args={[0.22, 0.16, 0.45, 6]} />
+                <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.2} />
+              </mesh>
+              {/* Warm Glowing Lantern Core */}
+              <mesh position={[0, 4.45, 0]}>
+                <sphereGeometry args={[0.16, 12, 12]} />
+                <meshBasicMaterial color="#ffedd5" />
+              </mesh>
+              <pointLight position={[0, 4.4, 0]} intensity={1.8} distance={15} color="#fed7aa" />
+            </group>
+          ))}
+        </group>
+      ))}
     </group>
   );
 }
@@ -508,7 +591,6 @@ export function OceanWater() {
 
   return (
     <group position={[0, -0.15, -340]}>
-      {/* Optimized 72x72 Grid for 60 FPS */}
       <mesh
         ref={oceanMeshRef}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -553,107 +635,65 @@ export function OceanWater() {
 }
 
 // ==============================================================
-// 9. ULTRA-HIGH-DETAIL OFFSHORE RACING SPEEDBOAT (Photo 2 & 5)
+// 9. REAL 3D SPEEDBOAT MODEL (boat.glb - Photo 2 Match, No Lego Boxes!)
 // ==============================================================
 export function Speedboat() {
-  const propRef1 = useRef<THREE.Group>(null);
-  const propRef2 = useRef<THREE.Group>(null);
+  const { scene } = useGLTF("/models/boat.glb");
 
-  useFrame((state) => {
-    const spin = state.clock.elapsedTime * 45;
-    if (propRef1.current) propRef1.current.rotation.z = spin;
-    if (propRef2.current) propRef2.current.rotation.z = -spin;
-  });
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // Speedboat length ~7.5 units
+    const targetLength = 7.5;
+    const s = size.z > 0 ? targetLength / size.z : 1;
+    clone.scale.set(s, s, s);
+
+    // Group A centers the boat at (0,0,0)
+    const centeredBoat = new THREE.Group();
+    centeredBoat.add(clone);
+    clone.position.set(-center.x * s, -box.min.y * s - 0.35, -center.z * s);
+    // Rotate 180° so pointed bow faces forward (-Z motion direction)
+    centeredBoat.rotation.y = Math.PI;
+
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const m = child as THREE.Mesh;
+        m.castShadow = true;
+        m.receiveShadow = true;
+        if (m.material) {
+          const mat = m.material as THREE.MeshStandardMaterial;
+          mat.roughness = 0.25;
+          mat.metalness = 0.5;
+        }
+      }
+    });
+
+    const grp = new THREE.Group();
+    grp.add(centeredBoat);
+    return grp;
+  }, [scene]);
 
   return (
     <group>
-      <group position={[0, 0.45, 0]}>
-        <mesh position={[0, 0.1, 0]} castShadow>
-          <boxGeometry args={[3.4, 1.4, 8.4]} />
-          <meshStandardMaterial color="#f8fafc" roughness={0.08} metalness={0.2} />
-        </mesh>
+      <primitive object={model} />
 
-        <mesh position={[0, 0.1, -4.8]} rotation={[0, Math.PI / 4, 0]} castShadow>
-          <boxGeometry args={[2.4, 1.4, 2.4]} />
-          <meshStandardMaterial color="#f8fafc" roughness={0.08} metalness={0.2} />
-        </mesh>
-
-        <mesh position={[0, 0.45, 0]}>
-          <boxGeometry args={[3.45, 0.35, 8.2]} />
-          <meshStandardMaterial color="#0284c7" roughness={0.15} metalness={0.6} />
-        </mesh>
-        <mesh position={[0, 0.82, -0.6]}>
-          <boxGeometry args={[1.2, 0.08, 6.4]} />
-          <meshStandardMaterial color="#f97316" roughness={0.2} />
-        </mesh>
-
-        {/* Wraparound Windshield */}
-        <group position={[0, 1.35, -1.2]}>
-          <mesh rotation={[-0.48, 0, 0]}>
-            <boxGeometry args={[2.8, 0.85, 0.06]} />
-            <meshStandardMaterial color="#0284c7" roughness={0.05} metalness={0.9} transparent opacity={0.8} />
-          </mesh>
-        </group>
-
-        {/* Cockpit Seats */}
-        <group position={[0, 0.9, 0.5]}>
-          <mesh position={[-0.7, 0.3, 0]}>
-            <boxGeometry args={[0.8, 0.7, 0.8]} />
-            <meshStandardMaterial color="#0f172a" roughness={0.7} />
-          </mesh>
-          <mesh position={[0.7, 0.3, 0]}>
-            <boxGeometry args={[0.8, 0.7, 0.8]} />
-            <meshStandardMaterial color="#0f172a" roughness={0.7} />
-          </mesh>
-        </group>
-
-        {/* Seated Pilot Figure */}
-        <group position={[-0.7, 1.35, 0.4]}>
-          <mesh position={[0, 0.45, 0]}>
-            <boxGeometry args={[0.65, 0.8, 0.5]} />
-            <meshStandardMaterial color="#f8fafc" roughness={0.8} />
-          </mesh>
-          <mesh position={[0, 1.05, 0]}>
-            <sphereGeometry args={[0.26, 12, 12]} />
-            <meshStandardMaterial color="#0f172a" />
-          </mesh>
-        </group>
-
-        {/* Twin Outboard Racing Engines */}
-        {[-0.95, 0.95].map((engineX, eIdx) => (
-          <group key={eIdx} position={[engineX, 0.55, 4.9]}>
-            <mesh castShadow>
-              <boxGeometry args={[0.6, 1.25, 0.9]} />
-              <meshStandardMaterial color="#090d16" metalness={0.9} roughness={0.15} />
-            </mesh>
-            <mesh position={[0, 0.3, 0.46]}>
-              <boxGeometry args={[0.4, 0.15, 0.05]} />
-              <meshBasicMaterial color="#ef4444" />
-            </mesh>
-            <group ref={eIdx === 0 ? propRef1 : propRef2} position={[0, -1.1, 0.4]}>
-              <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.08, 0.08, 0.2, 8]} />
-                <meshStandardMaterial color="#d97706" metalness={0.98} />
-              </mesh>
-              {[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((angle, bIdx) => (
-                <mesh key={bIdx} rotation={[0, 0, angle]}>
-                  <boxGeometry args={[0.55, 0.12, 0.03]} />
-                  <meshStandardMaterial color="#b45309" metalness={0.95} roughness={0.15} />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        ))}
-      </group>
-
-      {/* Foamy V-Wake (Photo 2 Match!) */}
-      <mesh position={[0, 0.08, 9]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[4.2, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.85} />
+      {/* Dynamic V-Wake trailing behind the boat stern */}
+      <mesh position={[0, 0.05, 7.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[3.8, 15]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.88} />
       </mesh>
-      <mesh position={[0, 0.06, 26]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[9.5, 34]} />
+      <mesh position={[0, 0.04, 22]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[9.5, 32]} />
         <meshBasicMaterial color="#e0f2fe" transparent opacity={0.55} />
+      </mesh>
+      <mesh position={[0, 0.03, 48]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[16.0, 48]} />
+        <meshBasicMaterial color="#bae6fd" transparent opacity={0.32} />
       </mesh>
     </group>
   );
