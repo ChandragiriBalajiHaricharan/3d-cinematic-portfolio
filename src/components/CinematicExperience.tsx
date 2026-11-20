@@ -20,31 +20,7 @@ import {
 import { SoundToggle, globalAudio } from "./SoundEngine";
 import CaseStudyDrawer from "./CaseStudyDrawer";
 import JourneyNavigator from "./JourneyNavigator";
-
-// Universal Scroll Controller Bridge (Enables Clicking Scenes & Keyboard Arrows)
-export const scrollBridge = {
-  el: null as HTMLElement | null,
-  scrollTo: (pct: number) => {
-    if (scrollBridge.el) {
-      const maxScroll = scrollBridge.el.scrollHeight - scrollBridge.el.clientHeight;
-      scrollBridge.el.scrollTo({
-        top: maxScroll * Math.max(0, Math.min(1, pct)),
-        behavior: "smooth",
-      });
-    }
-  },
-  advance: (deltaPct: number = 0.16) => {
-    if (scrollBridge.el) {
-      const maxScroll = scrollBridge.el.scrollHeight - scrollBridge.el.clientHeight;
-      const curPct = maxScroll > 0 ? scrollBridge.el.scrollTop / maxScroll : 0;
-      scrollBridge.scrollTo(curPct + deltaPct);
-    }
-  },
-  listeners: new Set<(pct: number) => void>(),
-  notify: (pct: number) => {
-    scrollBridge.listeners.forEach((fn) => fn(pct));
-  },
-};
+import { scrollBridge } from "./ScrollBridge";
 
 // 3D Skills Data from Resume
 const skills = [

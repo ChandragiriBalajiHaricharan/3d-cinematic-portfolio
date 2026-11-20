@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { scrollBridge } from "./CinematicExperience";
+import { scrollBridge } from "./ScrollBridge";
 
 const scenes = [
   { id: "paris", label: "01 // PARIS", pct: 0.04 },
