@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState, Suspense } from "react";
+import { useRef, useMemo, useState, useEffect, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ScrollControls, Scroll, useScroll, Text } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
@@ -20,6 +20,31 @@ import {
 import { SoundToggle, globalAudio } from "./SoundEngine";
 import CaseStudyDrawer from "./CaseStudyDrawer";
 import JourneyNavigator from "./JourneyNavigator";
+
+// Universal Scroll Controller Bridge (Enables Clicking Scenes & Keyboard Arrows)
+export const scrollBridge = {
+  el: null as HTMLElement | null,
+  scrollTo: (pct: number) => {
+    if (scrollBridge.el) {
+      const maxScroll = scrollBridge.el.scrollHeight - scrollBridge.el.clientHeight;
+      scrollBridge.el.scrollTo({
+        top: maxScroll * Math.max(0, Math.min(1, pct)),
+        behavior: "smooth",
+      });
+    }
+  },
+  advance: (deltaPct: number = 0.16) => {
+    if (scrollBridge.el) {
+      const maxScroll = scrollBridge.el.scrollHeight - scrollBridge.el.clientHeight;
+      const curPct = maxScroll > 0 ? scrollBridge.el.scrollTop / maxScroll : 0;
+      scrollBridge.scrollTo(curPct + deltaPct);
+    }
+  },
+  listeners: new Set<(pct: number) => void>(),
+  notify: (pct: number) => {
+    scrollBridge.listeners.forEach((fn) => fn(pct));
+  },
+};
 
 // 3D Skills Data from Resume
 const skills = [
@@ -96,8 +121,16 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
   const camTarget = useMemo(() => new THREE.Vector3(), []);
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
 
+  // Sync scroll element to global bridge
+  useEffect(() => {
+    if (scroll && scroll.el) {
+      scrollBridge.el = scroll.el;
+    }
+  }, [scroll]);
+
   useFrame((state) => {
     const r = scroll.offset;
+    scrollBridge.notify(r);
     const time = state.clock.elapsedTime;
 
     let currentVehicleX = 0;
@@ -109,12 +142,11 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
 
     // ==============================================================
     // ACT 1: [0.00 -> 0.14] HERO EIFFEL TOWER & DAYLIGHT SKY (Image 1 match!)
-    // Low-angle dramatic camera looking up at Eiffel Tower in bright blue sky
     // ==============================================================
     if (r < 0.14) {
       const p = r / 0.14;
-      const swayX = Math.sin(time * 0.7) * 0.25;
-      const swayY = Math.cos(time * 0.5) * 0.15;
+      const swayX = Math.sin(time * 0.7) * 0.2;
+      const swayY = Math.cos(time * 0.5) * 0.12;
       camTarget.set(7 + swayX, 8 + swayY - p * 2, 28 - p * 8);
       lookTarget.set(-2, 42, -50);
       currentVehicleX = 0;
@@ -123,7 +155,6 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     }
     // ==============================================================
     // ACT 2: [0.14 -> 0.28] 3D GIANT CITY TITLE (Image 4 match!)
-    // Camera swoops down to boulevard level, framing 3D title in city sky
     // ==============================================================
     else if (r < 0.28) {
       const p = (r - 0.14) / 0.14;
@@ -134,31 +165,27 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       globalAudio.update("idle", 0.2);
     }
     // ==============================================================
-    // ACT 3: [0.28 -> 0.48] MOTORCYCLE & SUPERCAR RIDE UP FREEWAY RAMP (Image 5 match!)
-    // Speeds up elevated freeway ramp towards overhead gantry 'STILL WITH ME?'
+    // ACT 3: [0.28 -> 0.48] FREEWAY RAMP VEHICLE CHASE (Image 5 match!)
     // ==============================================================
     else if (r < 0.48) {
       const p = (r - 0.28) / 0.20;
-      currentVehicleZ = 95 - p * 160; // down to pier z=-65
+      currentVehicleZ = 95 - p * 160;
       currentVehicleX = Math.sin(p * Math.PI * 4) * 1.5;
       currentVehicleLean = Math.cos(p * Math.PI * 4) * 0.18;
       const vehicleY = currentVehicleZ < 20 ? (20 - currentVehicleZ) * 0.08 : 0;
 
-      // 3rd-person chase camera locked behind vehicle (GTA VI chase cam)
       camTarget.set(currentVehicleX * 0.6, vehicleY + 3.4, currentVehicleZ + 7.5);
       lookTarget.set(currentVehicleX, vehicleY + 2.0, currentVehicleZ - 18);
       globalAudio.update("bike", 0.75);
     }
     // ==============================================================
     // ACT 4: [0.48 -> 0.58] SPEEDBOAT ON TURQUOISE SEA (Image 2 match!)
-    // Sweeping high aerial drone view over speedboat leaving foamy wake
     // ==============================================================
     else if (r < 0.58) {
       const p = (r - 0.48) / 0.10;
-      currentBoatZ = -70 - p * 60; // z=-70 to z=-130
+      currentBoatZ = -70 - p * 60;
       currentBoatX = 0;
 
-      // High aerial drone view (Photo 2 exact match!)
       camTarget.set(0, 24 + p * 6, currentBoatZ + 36);
       lookTarget.set(0, 0, currentBoatZ - 40);
       globalAudio.update("boat", 0.85);
@@ -168,13 +195,10 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     // ==============================================================
     else if (r < 0.88) {
       const p = (r - 0.58) / 0.30;
-      currentBoatZ = -130 - p * 340; // sails from z=-130 to z=-470
+      currentBoatZ = -130 - p * 340;
       currentBoatX = Math.sin(p * Math.PI * 4) * 2.2;
 
-      // 3rd-person chase camera right behind boat (Photo 5 match!)
       camTarget.set(currentBoatX * 0.7, 4.2, currentBoatZ + 13);
-
-      // Camera smoothly swivels to frame the billboard being passed alongside
       const gazeSide = Math.sin(p * Math.PI * 4);
       lookTarget.set(-gazeSide * 6.5, 6.0, currentBoatZ - 20);
       globalAudio.update("boat", 0.78);
@@ -208,8 +232,8 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
     if (boatGroupRef.current) {
       if (r >= 0.44) {
         boatGroupRef.current.visible = true;
-        const waterBob = Math.sin(time * 3.5) * 0.06;
-        const waterRoll = Math.sin(time * 2.8) * 0.04;
+        const waterBob = Math.sin(time * 3.5) * 0.05;
+        const waterRoll = Math.sin(time * 2.8) * 0.03;
         boatGroupRef.current.position.set(currentBoatX, -0.05 + waterBob, currentBoatZ);
         boatGroupRef.current.rotation.z = waterRoll;
       } else {
@@ -217,29 +241,29 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       }
     }
 
-    // Camera smoothing
-    camera.position.lerp(camTarget, 0.08);
+    // Camera smoothing (Faster response)
+    camera.position.lerp(camTarget, 0.12);
     camera.lookAt(lookTarget);
   });
 
   return (
     <>
-      {/* High-Dynamic-Range PBR Lighting */}
       <ambientLight intensity={1.2} color="#ffffff" />
       <directionalLight
         position={[60, 85, -45]}
-        intensity={3.8}
+        intensity={3.6}
         color="#fff1cc"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0005}
       />
-      <directionalLight position={[-40, 45, 60]} intensity={1.4} color="#bae6fd" />
+      <directionalLight position={[-40, 45, 60]} intensity={1.2} color="#bae6fd" />
       <fog attach="fog" args={["#7dd3fc", 160, 950]} />
 
-      {/* Atmospheric Daylight Sky & 3D Clouds (Image 1 & 2) */}
+      {/* Atmospheric Daylight Sky */}
       <AtmosphericSky />
 
-      {/* ACT 1: Real 3D Eiffel Tower Model (eiffel.glb) */}
+      {/* ACT 1: Real 3D Eiffel Tower Model */}
       <Suspense fallback={null}>
         <EiffelTower position={[0, 0, -50]} />
       </Suspense>
@@ -247,7 +271,7 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
       {/* ACT 1: Paris Ferris Wheel on skyline */}
       <ParisFerrisWheel position={[72, 0, -50]} />
 
-      {/* ACT 2: Giant 3D Title in City Sky (Image 4 exact match!) */}
+      {/* ACT 2: Giant 3D Title in City Sky */}
       <group position={[0, 15, 12]}>
         <Text
           position={[0, 4.2, 0]}
@@ -281,7 +305,7 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
         </Text>
       </group>
 
-      {/* Highway Sign Gantry Text (Image 5 exact match!) */}
+      {/* Highway Sign Gantry Text */}
       <group position={[0, 8.5, -19.8]}>
         <Text
           fontSize={1.2}
@@ -294,31 +318,31 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
         </Text>
       </group>
 
-      {/* ACT 3: Paris Boulevard with 3D Haussmann buildings, trees, highway ramp */}
+      {/* ACT 3: Paris Boulevard with 3D Haussmann buildings */}
       <CityBoulevard />
 
-      {/* Highway Vehicle: High-Detail Supercar & Motorcycle (Photo 5 match!) */}
+      {/* Highway Vehicle: Supercar */}
       <group ref={vehicleGroupRef}>
         <Suspense fallback={null}>
           <SupercarVehicle position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
         </Suspense>
       </group>
 
-      {/* Real 3D Man Character standing in foreground */}
+      {/* Real 3D Man Character & Carbon Bike in Foreground */}
       <Suspense fallback={null}>
         <RealManCharacter position={[0, 0, 96]} rotation={[0, Math.PI, 0]} />
         <RealCarbonBike position={[2.2, 0, 95]} rotation={[0, Math.PI / 2 + 0.15, 0]} />
       </Suspense>
 
-      {/* ACT 4 & 5: Dynamic GTA VI Ocean Simulation (Photo 2 & 5) */}
+      {/* ACT 4 & 5: Dynamic GTA VI Ocean Simulation */}
       <OceanWater />
 
-      {/* ACT 4 & 5: Photorealistic Offshore Speedboat (Photo 2 & 5) */}
+      {/* ACT 4 & 5: Offshore Speedboat */}
       <group ref={boatGroupRef}>
         <Speedboat />
       </group>
 
-      {/* ACT 5: 4 Real Resume Floating Barge Billboards (Photo 5 GTA Vice City match!) */}
+      {/* ACT 5: 4 Real Resume Floating Barge Billboards */}
       {bargeProjects.map((p, idx) => {
         const isLeft = idx % 2 === 0;
         const posX = isLeft ? -18 : 18;
@@ -336,12 +360,11 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
         );
       })}
 
-      {/* GTA VI Level Cinematic Post-Processing Pipeline */}
+      {/* High-Performance Post-Processing (Fast 60 FPS Bloom) */}
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.65}
-          intensity={1.25}
-          mipmapBlur
+          luminanceThreshold={0.7}
+          intensity={0.9}
         />
         <Vignette offset={0.2} darkness={0.65} />
       </EffectComposer>
@@ -349,11 +372,11 @@ function CinematicScene({ onSelectProject }: { onSelectProject: (title: string) 
   );
 }
 
-// Scroll HTML Overlays aligned to the 6 Acts
+// Scroll HTML Overlays aligned to the Acts
 function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: string) => void }) {
   return (
-    <div style={{ position: "relative", width: "100%", height: "1000vh", pointerEvents: "none" }}>
-      {/* ACT 1: Prologue / The Rendezvous (0% - 14%) */}
+    <div style={{ position: "relative", width: "100%", height: "600vh", pointerEvents: "none" }}>
+      {/* ACT 1: Prologue */}
       <div
         style={{
           position: "absolute",
@@ -378,15 +401,15 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
             backdropFilter: "blur(8px)",
           }}
         >
-          PARIS AT DUSK // SCROLL TO COMMENCE
+          PARIS AT DUSK // SCROLL OR PRESS ARROW KEYS TO COMMENCE
         </span>
       </div>
 
-      {/* ACT 3: The Highway Freeway Ride — Skill Cards on sides */}
+      {/* ACT 3: Freeway Ride Skill Cards */}
       <div
         style={{
           position: "absolute",
-          top: "290vh",
+          top: "180vh",
           left: "4vw",
           maxWidth: "340px",
         }}
@@ -408,7 +431,7 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
       <div
         style={{
           position: "absolute",
-          top: "335vh",
+          top: "210vh",
           right: "4vw",
           maxWidth: "340px",
         }}
@@ -430,7 +453,7 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
       <div
         style={{
           position: "absolute",
-          top: "385vh",
+          top: "245vh",
           left: "4vw",
           maxWidth: "340px",
         }}
@@ -452,7 +475,7 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
       <div
         style={{
           position: "absolute",
-          top: "430vh",
+          top: "280vh",
           right: "4vw",
           maxWidth: "340px",
         }}
@@ -471,11 +494,11 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
         </div>
       </div>
 
-      {/* ACT 4: Transition to Waterway (48% - 58%) */}
+      {/* ACT 4: Transition to Waterway */}
       <div
         style={{
           position: "absolute",
-          top: "490vh",
+          top: "320vh",
           left: 0,
           right: 0,
           textAlign: "center",
@@ -494,7 +517,7 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
       <div
         style={{
           position: "absolute",
-          top: "590vh",
+          top: "410vh",
           left: 0,
           right: 0,
           textAlign: "center",
@@ -519,11 +542,11 @@ function ScrollOverlayContent({ onSelectProject }: { onSelectProject: (title: st
         </span>
       </div>
 
-      {/* ACT 6: Last — About Chandragiri Balaji Haricharan (88% - 100%) */}
+      {/* ACT 6: Last — About Chandragiri Balaji Haricharan */}
       <div
         style={{
           position: "absolute",
-          top: "890vh",
+          top: "510vh",
           left: 0,
           right: 0,
         }}
@@ -591,13 +614,13 @@ function TopHUD() {
       <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
         <SoundToggle />
         <span className="hidden md:inline">HYDERABAD, IN</span>
-        <span className="hidden md:inline">● GTA VI VFX</span>
+        <span className="hidden md:inline">● 60 FPS 3D</span>
       </div>
     </div>
   );
 }
 
-// Bottom Scroll Hint
+// Bottom Scroll Hint with Clickable Advance Button
 function BottomHUD() {
   return (
     <div
@@ -610,18 +633,16 @@ function BottomHUD() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        pointerEvents: "none",
-        fontFamily: "monospace",
-        fontSize: "11px",
-        letterSpacing: "0.3em",
-        color: "rgba(255, 255, 255, 0.75)",
-        textTransform: "uppercase",
+        pointerEvents: "auto",
       }}
     >
-      <div className="flex flex-col items-center gap-2">
-        <span>SCROLL TO ADVANCE JOURNEY</span>
-        <div className="w-[1px] h-6 bg-gradient-to-b from-cyan-400 to-transparent animate-pulse" />
-      </div>
+      <button
+        onClick={() => scrollBridge.advance(0.16)}
+        className="flex flex-col items-center gap-1.5 px-6 py-2 rounded-full bg-slate-900/80 border border-cyan-500/40 text-cyan-300 font-mono text-[11px] tracking-widest uppercase hover:bg-cyan-500/20 hover:border-cyan-400 transition-all cursor-pointer backdrop-blur-md shadow-[0_0_20px_rgba(56,189,248,0.25)]"
+      >
+        <span>SCROLL OR CLICK TO ADVANCE ↓</span>
+        <div className="w-[1px] h-4 bg-gradient-to-b from-cyan-400 to-transparent animate-pulse" />
+      </button>
     </div>
   );
 }
@@ -629,6 +650,23 @@ function BottomHUD() {
 // Main Component
 export default function CinematicExperience() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
+
+  // Global Keyboard Navigation (Arrow Keys / Spacebar)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when inside modal or typing
+      if (selectedProject) return;
+      if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault();
+        scrollBridge.advance(0.16);
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        scrollBridge.advance(-0.16);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedProject]);
 
   return (
     <div
@@ -640,7 +678,6 @@ export default function CinematicExperience() {
         overflow: "hidden",
       }}
     >
-      {/* 22px Cinematic Letterbox Bars */}
       <div
         style={{
           position: "fixed",
@@ -683,12 +720,13 @@ export default function CinematicExperience() {
         camera={{ position: [0, 16, 125], fov: 50, near: 0.1, far: 950 }}
         gl={{
           antialias: true,
+          powerPreference: "high-performance",
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.25,
         }}
         style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }}
       >
-        <ScrollControls pages={10} damping={0.25}>
+        <ScrollControls pages={6} damping={0.12}>
           <CinematicScene onSelectProject={(title) => setSelectedProject(title)} />
           <Scroll html style={{ width: "100%", height: "100%" }}>
             <ScrollOverlayContent onSelectProject={(title) => setSelectedProject(title)} />

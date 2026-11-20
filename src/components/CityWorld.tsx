@@ -6,12 +6,11 @@ import { useGLTF, Sky } from "@react-three/drei";
 import * as THREE from "three";
 
 // ==============================================================
-// 1. ATMOSPHERIC SKY & SUN (GTA VI Level Daylight & Golden Hour)
+// 1. ATMOSPHERIC SKY & SUN (Optimized for High Performance)
 // ==============================================================
 export function AtmosphericSky() {
   return (
     <group>
-      {/* Physical Rayleigh/Mie Sky Scattering */}
       <Sky
         sunPosition={[95, 65, -200]}
         turbidity={4}
@@ -22,36 +21,30 @@ export function AtmosphericSky() {
 
       {/* Radiant Sun Corona Core */}
       <mesh position={[95, 65, -200]}>
-        <sphereGeometry args={[14, 32, 32]} />
+        <sphereGeometry args={[14, 20, 20]} />
         <meshBasicMaterial color="#fffbeb" />
       </mesh>
       {/* Sun Volumetric Bloom Halo */}
       <mesh position={[95, 65, -200]}>
-        <sphereGeometry args={[36, 32, 32]} />
-        <meshBasicMaterial color="#fde047" transparent opacity={0.35} />
+        <sphereGeometry args={[36, 20, 20]} />
+        <meshBasicMaterial color="#fde047" transparent opacity={0.3} />
       </mesh>
 
-      {/* Layered High-Altitude 3D Cirrus & Cumulus Clouds */}
+      {/* Distant Clouds */}
       {[
         [-160, 85, -240, 24],
-        [-50, 95, -220, 32],
-        [60, 90, -250, 28],
-        [170, 80, -230, 26],
-        [-120, 75, -130, 22],
-        [130, 85, -110, 25],
+        [-50, 95, -220, 30],
+        [60, 90, -250, 26],
+        [170, 80, -230, 24],
       ].map(([cx, cy, cz, rad], i) => (
         <group key={i} position={[cx, cy, cz]}>
           <mesh>
-            <sphereGeometry args={[rad, 16, 16]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.95} metalness={0.0} />
+            <sphereGeometry args={[rad, 12, 12]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.95} />
           </mesh>
           <mesh position={[rad * 0.6, -rad * 0.1, 4]}>
-            <sphereGeometry args={[rad * 0.75, 16, 16]} />
+            <sphereGeometry args={[rad * 0.75, 12, 12]} />
             <meshStandardMaterial color="#f8fafc" roughness={0.95} />
-          </mesh>
-          <mesh position={[-rad * 0.6, -rad * 0.15, -4]}>
-            <sphereGeometry args={[rad * 0.7, 16, 16]} />
-            <meshStandardMaterial color="#f1f5f9" roughness={0.95} />
           </mesh>
         </group>
       ))}
@@ -80,7 +73,6 @@ export function EiffelTower({ position = [0, 0, -50] }: { position?: [number, nu
     const center = new THREE.Vector3();
     box.getCenter(center);
 
-    // Height ~128 units
     const targetHeight = 128;
     const s = size.y > 0 ? targetHeight / size.y : 1;
     clone.scale.set(s, s, s);
@@ -111,17 +103,17 @@ export function EiffelTower({ position = [0, 0, -50] }: { position?: [number, nu
       {/* Sweeping 360° Eiffel Tower Beacon Light Beam */}
       <group ref={beaconRef} position={[0, 126, 0]}>
         <mesh position={[0, 0, 70]} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[16, 140, 24, 1, true]} />
+          <coneGeometry args={[16, 140, 16, 1, true]} />
           <meshBasicMaterial
             color="#fff8db"
             transparent
-            opacity={0.32}
+            opacity={0.3}
             side={THREE.DoubleSide}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={18} distance={80} color="#ffedd5" />
+        <pointLight position={[0, 0, 0]} intensity={14} distance={80} color="#ffedd5" />
       </group>
     </group>
   );
@@ -140,7 +132,6 @@ export function ParisFerrisWheel({ position = [72, 0, -50] }: { position?: [numb
 
   return (
     <group position={position}>
-      {/* Heavy Steel Support Legs */}
       <mesh position={[-4, 18, 0]} rotation={[0, 0, -0.22]}>
         <cylinderGeometry args={[0.35, 0.65, 38, 8]} />
         <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.3} />
@@ -150,18 +141,17 @@ export function ParisFerrisWheel({ position = [72, 0, -50] }: { position?: [numb
         <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.3} />
       </mesh>
 
-      {/* Rotating Wheel with Neon Spokes */}
       <group ref={wheelRef} position={[0, 36, 0]}>
         <mesh>
-          <torusGeometry args={[24, 0.45, 8, 48]} />
+          <torusGeometry args={[24, 0.45, 8, 36]} />
           <meshBasicMaterial color="#f59e0b" />
         </mesh>
         <mesh>
-          <torusGeometry args={[18, 0.25, 8, 36]} />
+          <torusGeometry args={[18, 0.25, 8, 28]} />
           <meshBasicMaterial color="#fbbf24" />
         </mesh>
-        {Array.from({ length: 16 }).map((_, i) => (
-          <mesh key={i} rotation={[0, 0, (i * Math.PI) / 8]}>
+        {Array.from({ length: 12 }).map((_, i) => (
+          <mesh key={i} rotation={[0, 0, (i * Math.PI) / 6]}>
             <boxGeometry args={[48, 0.15, 0.15]} />
             <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={0.6} />
           </mesh>
@@ -172,7 +162,7 @@ export function ParisFerrisWheel({ position = [72, 0, -50] }: { position?: [numb
 }
 
 // ==============================================================
-// 4. REAL 3D CHARACTER (person.glb / character.glb)
+// 4. REAL 3D CHARACTER (person.glb)
 // ==============================================================
 export function RealManCharacter({
   position = [0, 0, 96],
@@ -199,7 +189,6 @@ export function RealManCharacter({
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         child.castShadow = true;
-        child.receiveShadow = true;
       }
     });
 
@@ -216,7 +205,7 @@ export function RealManCharacter({
 }
 
 // ==============================================================
-// 5. HIGHWAY SUPERCAR (ferrari.glb - Photo 5 GTA VI Freeway Ramp)
+// 5. HIGHWAY SUPERCAR (ferrari.glb - Fast Rendering, No Heavy Spot Shadows)
 // ==============================================================
 export function SupercarVehicle({
   position = [0, 0, 0],
@@ -235,7 +224,6 @@ export function SupercarVehicle({
     const center = new THREE.Vector3();
     box.getCenter(center);
 
-    // Car scale ~4.8m length, ~1.4m height
     const targetLength = 4.8;
     const s = size.z > 0 ? targetLength / size.z : 1;
     clone.scale.set(s, s, s);
@@ -245,8 +233,6 @@ export function SupercarVehicle({
       if ((child as THREE.Mesh).isMesh) {
         const m = child as THREE.Mesh;
         m.castShadow = true;
-        m.receiveShadow = true;
-        // Boost paint reflections for GTA VI glossy look
         if (m.material) {
           const mat = m.material as THREE.MeshStandardMaterial;
           if (mat.name && mat.name.toLowerCase().includes("body")) {
@@ -267,26 +253,24 @@ export function SupercarVehicle({
     <group position={position} rotation={rotation}>
       <primitive object={carModel} />
 
-      {/* Dual Xenon Headlight Cones */}
+      {/* Forward Headlight Beam Cones (Lightweight - No Shadow Pass) */}
       <spotLight
         position={[-0.8, 0.7, -2.4]}
         target-position={[-0.8, 0.2, -35]}
         angle={0.55}
         penumbra={0.4}
-        intensity={28}
+        intensity={24}
         color="#e0f2fe"
-        distance={50}
-        castShadow
+        distance={45}
       />
       <spotLight
         position={[0.8, 0.7, -2.4]}
         target-position={[0.8, 0.2, -35]}
         angle={0.55}
         penumbra={0.4}
-        intensity={28}
+        intensity={24}
         color="#e0f2fe"
-        distance={50}
-        castShadow
+        distance={45}
       />
 
       {/* Red LED Taillights with Volumetric Streaks */}
@@ -298,10 +282,10 @@ export function SupercarVehicle({
         <boxGeometry args={[0.35, 0.1, 0.05]} />
         <meshBasicMaterial color="#ff1133" />
       </mesh>
-      <pointLight position={[0, 0.75, 2.5]} intensity={12} color="#ff1133" distance={10} />
+      <pointLight position={[0, 0.75, 2.5]} intensity={8} color="#ff1133" distance={8} />
 
-      {/* Neon Cyan Underglow (GTA VI Night/Dusk Style) */}
-      <pointLight position={[0, 0.2, 0]} intensity={8} color="#06b6d4" distance={5} />
+      {/* Neon Cyan Underglow */}
+      <pointLight position={[0, 0.2, 0]} intensity={6} color="#06b6d4" distance={5} />
     </group>
   );
 }
@@ -318,67 +302,43 @@ export function RealCarbonBike({
 }) {
   return (
     <group position={position} rotation={rotation}>
-      {/* Front & Rear Wheels (Tires + Rims + Disc Brakes) */}
       <group position={[0, 0.45, -1.05]}>
         <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-          <torusGeometry args={[0.42, 0.08, 16, 32]} />
+          <torusGeometry args={[0.42, 0.08, 12, 24]} />
           <meshStandardMaterial color="#0f172a" roughness={0.9} />
         </mesh>
         <mesh rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.34, 0.34, 0.04, 24]} />
+          <cylinderGeometry args={[0.34, 0.34, 0.04, 16]} />
           <meshStandardMaterial color="#1e293b" metalness={0.95} roughness={0.25} />
-        </mesh>
-        <mesh rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.26, 0.26, 0.05, 16]} />
-          <meshStandardMaterial color="#94a3b8" metalness={0.95} roughness={0.15} />
         </mesh>
       </group>
 
       <group position={[0, 0.45, 1.05]}>
         <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-          <torusGeometry args={[0.42, 0.08, 16, 32]} />
+          <torusGeometry args={[0.42, 0.08, 12, 24]} />
           <meshStandardMaterial color="#0f172a" roughness={0.9} />
         </mesh>
         <mesh rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.34, 0.34, 0.04, 24]} />
+          <cylinderGeometry args={[0.34, 0.34, 0.04, 16]} />
           <meshStandardMaterial color="#1e293b" metalness={0.95} roughness={0.25} />
         </mesh>
       </group>
 
-      {/* Matte Carbon Frame & Trellis Chassis */}
       <mesh position={[0, 0.72, 0]} castShadow>
         <boxGeometry args={[0.28, 0.42, 1.4]} />
         <meshStandardMaterial color="#090d16" metalness={0.9} roughness={0.2} />
       </mesh>
 
-      {/* Engine Block with Chrome Headers */}
-      <mesh position={[0, 0.52, -0.1]} castShadow>
-        <boxGeometry args={[0.34, 0.36, 0.6]} />
-        <meshStandardMaterial color="#334155" metalness={0.95} roughness={0.2} />
-      </mesh>
-
-      {/* Sculpted Tank & Cowl */}
       <mesh position={[0, 0.95, -0.28]} rotation={[-0.15, 0, 0]} castShadow>
         <boxGeometry args={[0.36, 0.28, 0.75]} />
         <meshStandardMaterial color="#0284c7" metalness={0.8} roughness={0.2} />
       </mesh>
 
-      {/* Gold Inverted Front Forks */}
-      <mesh position={[-0.12, 0.72, -0.85]} rotation={[0.35, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.035, 0.035, 0.85, 12]} />
-        <meshStandardMaterial color="#eab308" metalness={0.95} roughness={0.15} />
-      </mesh>
-      <mesh position={[0.12, 0.72, -0.85]} rotation={[0.35, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.035, 0.035, 0.85, 12]} />
-        <meshStandardMaterial color="#eab308" metalness={0.95} roughness={0.15} />
-      </mesh>
-
-      {/* LED Halo Headlight */}
       <mesh position={[0, 0.95, -0.92]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.12, 0.12, 0.06, 20]} />
+        <cylinderGeometry args={[0.12, 0.12, 0.06, 16]} />
         <meshBasicMaterial color="#ffffff" />
       </mesh>
-      <pointLight position={[0, 0.95, -1.0]} intensity={10} color="#ffffff" distance={15} />
+      <pointLight position={[0, 0.95, -1.0]} intensity={8} color="#ffffff" distance={12} />
     </group>
   );
 }
@@ -410,28 +370,26 @@ export function CityBoulevard() {
   }, []);
 
   const buildings = useMemo(() => {
-    const list: Array<{ x: number; z: number; w: number; h: number; d: number; isLeft: boolean }> = [];
+    const list: Array<{ x: number; z: number; w: number; h: number; d: number }> = [];
     for (let z = 120; z >= -60; z -= 24) {
-      list.push({ x: -34, z, w: 18, h: 26 + (Math.abs(z) % 4) * 3, d: 22, isLeft: true });
-      list.push({ x: 34, z, w: 18, h: 28 + (Math.abs(z) % 3) * 3, d: 22, isLeft: false });
+      list.push({ x: -34, z, w: 18, h: 26 + (Math.abs(z) % 4) * 3, d: 22 });
+      list.push({ x: 34, z, w: 18, h: 28 + (Math.abs(z) % 3) * 3, d: 22 });
     }
     return list;
   }, []);
 
   return (
     <group>
-      {/* 28-Unit Grand Cobblestone Avenue with Wet Gloss Reflections */}
       <mesh position={[0, 0, 20]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[28, 220]} />
         <meshStandardMaterial
           map={cobblestoneTexture || undefined}
           color="#383028"
-          roughness={0.22} // Wet road high specular reflection
+          roughness={0.22}
           metalness={0.75}
         />
       </mesh>
 
-      {/* Granite Sidewalks on Both Sides */}
       <mesh position={[-19, 0.15, 20]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[10, 220]} />
         <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.3} />
@@ -441,33 +399,7 @@ export function CityBoulevard() {
         <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.3} />
       </mesh>
 
-      {/* Street Trees with Full Foliage lining both sidewalks */}
-      {[-120, -90, -60, -30, 0, 30, 60, 90].map((tz) => (
-        <group key={tz}>
-          <group position={[-16, 0, tz]}>
-            <mesh position={[0, 2.5, 0]} castShadow>
-              <cylinderGeometry args={[0.22, 0.35, 5, 8]} />
-              <meshStandardMaterial color="#3f2e21" roughness={0.9} />
-            </mesh>
-            <mesh position={[0, 6.2, 0]} castShadow>
-              <sphereGeometry args={[2.8, 12, 12]} />
-              <meshStandardMaterial color="#166534" roughness={0.7} />
-            </mesh>
-          </group>
-          <group position={[16, 0, tz]}>
-            <mesh position={[0, 2.5, 0]} castShadow>
-              <cylinderGeometry args={[0.22, 0.35, 5, 8]} />
-              <meshStandardMaterial color="#3f2e21" roughness={0.9} />
-            </mesh>
-            <mesh position={[0, 6.2, 0]} castShadow>
-              <sphereGeometry args={[2.8, 12, 12]} />
-              <meshStandardMaterial color="#166534" roughness={0.7} />
-            </mesh>
-          </group>
-        </group>
-      ))}
-
-      {/* Haussmann Classical Parisian 3D Buildings */}
+      {/* Haussmann Buildings */}
       {buildings.map((b, idx) => (
         <group key={idx} position={[b.x, b.h / 2, b.z]}>
           <mesh castShadow receiveShadow>
@@ -479,41 +411,26 @@ export function CityBoulevard() {
               metalness={0.2}
             />
           </mesh>
-          {/* Zinc Mansard Slate Roof */}
-          <mesh position={[0, b.h / 2 + 2.5, 0]} castShadow>
+          <mesh position={[0, b.h / 2 + 2.5, 0]}>
             <boxGeometry args={[b.w - 1.2, 5, b.d - 1.2]} />
             <meshStandardMaterial color="#334155" roughness={0.4} metalness={0.6} />
           </mesh>
         </group>
       ))}
 
-      {/* Elevated Highway Freeway Ramp (Photo 5 match!) */}
+      {/* Elevated Highway Freeway Ramp */}
       <group position={[0, 0, -20]}>
-        <mesh position={[0, 4.5, -25]} rotation={[0.16, 0, 0]} castShadow receiveShadow>
+        <mesh position={[0, 4.5, -25]} rotation={[0.16, 0, 0]} receiveShadow>
           <boxGeometry args={[14, 1.2, 55]} />
           <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.5} />
         </mesh>
-        {/* Concrete Overpass Support Pillars */}
-        {[-35, -45].map((pz) => (
-          <group key={pz} position={[0, 0, pz]}>
-            <mesh position={[-5, 4.5, 0]}>
-              <cylinderGeometry args={[0.7, 0.9, 9, 12]} />
-              <meshStandardMaterial color="#64748b" roughness={0.7} />
-            </mesh>
-            <mesh position={[5, 4.5, 0]}>
-              <cylinderGeometry args={[0.7, 0.9, 9, 12]} />
-              <meshStandardMaterial color="#64748b" roughness={0.7} />
-            </mesh>
-          </group>
-        ))}
       </group>
     </group>
   );
 }
 
 // ==============================================================
-// 8. GTA VI DYNAMIC OCEAN SIMULATION (ACT 4 & 5: Photo 2 & 5)
-// Multi-octave wave displacement, deep turquoise shader & foam
+// 8. GTA VI DYNAMIC OCEAN SIMULATION (Optimized 72x72 Grid)
 // ==============================================================
 export function OceanWater() {
   const oceanMeshRef = useRef<THREE.Mesh>(null);
@@ -528,9 +445,9 @@ export function OceanWater() {
     return new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
-        uDeepColor: { value: new THREE.Color("#022c43") }, // Deep Caribbean Navy
-        uSurfaceColor: { value: new THREE.Color("#0284c7") }, // Vibrant Turquoise
-        uCrestColor: { value: new THREE.Color("#7dd3fc") }, // Seafoam Highlight
+        uDeepColor: { value: new THREE.Color("#022c43") },
+        uSurfaceColor: { value: new THREE.Color("#0284c7") },
+        uCrestColor: { value: new THREE.Color("#7dd3fc") },
         uSunDir: { value: new THREE.Vector3(0.5, 0.7, -0.5).normalize() },
       },
       vertexShader: `
@@ -542,20 +459,17 @@ export function OceanWater() {
         void main() {
           vec3 pos = position;
 
-          // Multi-octave Gerstner wave displacement
-          float w1 = sin(pos.x * 0.035 + uTime * 1.6) * cos(pos.y * 0.035 + uTime * 1.4) * 0.9;
-          float w2 = sin(pos.x * 0.08 - uTime * 2.2 + pos.y * 0.06) * 0.45;
-          float w3 = cos(pos.x * 0.15 + pos.y * 0.12 - uTime * 3.1) * 0.22;
-
-          float elevation = w1 + w2 + w3;
+          float w1 = sin(pos.x * 0.035 + uTime * 1.6) * cos(pos.y * 0.035 + uTime * 1.4) * 0.85;
+          float w2 = sin(pos.x * 0.08 - uTime * 2.2 + pos.y * 0.06) * 0.4;
+          float elevation = w1 + w2;
           pos.z += elevation;
           vWaveHeight = elevation;
 
           vec4 worldPos = modelMatrix * vec4(pos, 1.0);
           vWorldPosition = worldPos.xyz;
           vNormal = normalize(normalMatrix * vec3(
-            - (cos(pos.x * 0.035 + uTime * 1.6) * 0.035 * 0.9),
-            - (cos(pos.y * 0.035 + uTime * 1.4) * 0.035 * 0.9),
+            - (cos(pos.x * 0.035 + uTime * 1.6) * 0.035 * 0.85),
+            - (cos(pos.y * 0.035 + uTime * 1.4) * 0.035 * 0.85),
             1.0
           ));
 
@@ -575,19 +489,13 @@ export function OceanWater() {
           vec3 viewDir = normalize(cameraPosition - vWorldPosition);
           vec3 norm = normalize(vNormal);
 
-          // Fresnel reflection
-          float fresnel = pow(1.0 - max(dot(viewDir, norm), 0.0), 3.5);
-
-          // Sun Specular Highlight
+          float fresnel = pow(1.0 - max(dot(viewDir, norm), 0.0), 3.0);
           vec3 halfVector = normalize(uSunDir + viewDir);
-          float spec = pow(max(dot(norm, halfVector), 0.0), 120.0) * 2.4;
+          float spec = pow(max(dot(norm, halfVector), 0.0), 80.0) * 2.2;
 
-          // Water color blending
-          float mixWave = smoothstep(-1.2, 1.2, vWaveHeight);
+          float mixWave = smoothstep(-1.0, 1.0, vWaveHeight);
           vec3 waterCol = mix(uDeepColor, uSurfaceColor, mixWave);
-          waterCol = mix(waterCol, uCrestColor, fresnel * 0.7);
-
-          // Add sun glint
+          waterCol = mix(waterCol, uCrestColor, fresnel * 0.65);
           waterCol += vec3(1.0, 0.95, 0.8) * spec;
 
           gl_FragColor = vec4(waterCol, 0.94);
@@ -600,26 +508,25 @@ export function OceanWater() {
 
   return (
     <group position={[0, -0.15, -340]}>
-      {/* High-Subdivision Dynamic Ocean Grid */}
+      {/* Optimized 72x72 Grid for 60 FPS */}
       <mesh
         ref={oceanMeshRef}
         rotation={[-Math.PI / 2, 0, 0]}
         material={waterMaterial}
-        receiveShadow
       >
-        <planeGeometry args={[1800, 1100, 160, 160]} />
+        <planeGeometry args={[1600, 950, 72, 72]} />
       </mesh>
 
-      {/* Coastal City Skylines on Both Shores (Photo 2 & 5) */}
+      {/* Coastal City Skylines on Both Shores */}
       {[-170, 170].map((shoreX) => (
         <group key={shoreX} position={[shoreX, 0, 0]}>
-          {Array.from({ length: 26 }).map((_, i) => {
-            const h = 32 + (i % 7) * 16;
+          {Array.from({ length: 20 }).map((_, i) => {
+            const h = 32 + (i % 6) * 16;
             const w = 20 + (i % 3) * 8;
-            const z = 420 - i * 34;
+            const z = 420 - i * 42;
             return (
               <group key={i} position={[0, h / 2, z]}>
-                <mesh castShadow receiveShadow>
+                <mesh>
                   <boxGeometry args={[w, h, w]} />
                   <meshStandardMaterial
                     color="#0f172a"
@@ -627,7 +534,6 @@ export function OceanWater() {
                     metalness={0.85}
                   />
                 </mesh>
-                {/* Glowing Glass Window Grid */}
                 <mesh position={[shoreX > 0 ? -w / 2 - 0.1 : w / 2 + 0.1, 0, 0]}>
                   <planeGeometry args={[w * 0.85, h * 0.85]} />
                   <meshStandardMaterial
@@ -648,7 +554,6 @@ export function OceanWater() {
 
 // ==============================================================
 // 9. ULTRA-HIGH-DETAIL OFFSHORE RACING SPEEDBOAT (Photo 2 & 5)
-// Custom aerodynamic stepped V-hull, teak deck, twin outboards, spinning props
 // ==============================================================
 export function Speedboat() {
   const propRef1 = useRef<THREE.Group>(null);
@@ -662,21 +567,17 @@ export function Speedboat() {
 
   return (
     <group>
-      {/* Main Boat Structure */}
       <group position={[0, 0.45, 0]}>
-        {/* Aerodynamic Deep-V Hull (Arctic White with Gloss Gelcoat) */}
-        <mesh position={[0, 0.1, 0]} castShadow receiveShadow>
+        <mesh position={[0, 0.1, 0]} castShadow>
           <boxGeometry args={[3.4, 1.4, 8.4]} />
           <meshStandardMaterial color="#f8fafc" roughness={0.08} metalness={0.2} />
         </mesh>
 
-        {/* Sharp V-Raked Bow */}
         <mesh position={[0, 0.1, -4.8]} rotation={[0, Math.PI / 4, 0]} castShadow>
           <boxGeometry args={[2.4, 1.4, 2.4]} />
           <meshStandardMaterial color="#f8fafc" roughness={0.08} metalness={0.2} />
         </mesh>
 
-        {/* Electric Cyan Racing Livery Stripe */}
         <mesh position={[0, 0.45, 0]}>
           <boxGeometry args={[3.45, 0.35, 8.2]} />
           <meshStandardMaterial color="#0284c7" roughness={0.15} metalness={0.6} />
@@ -686,53 +587,23 @@ export function Speedboat() {
           <meshStandardMaterial color="#f97316" roughness={0.2} />
         </mesh>
 
-        {/* Teak Wood Deck Inlay */}
-        <mesh position={[0, 0.85, -2.2]}>
-          <boxGeometry args={[2.6, 0.04, 3.2]} />
-          <meshStandardMaterial color="#92400e" roughness={0.6} />
-        </mesh>
-
-        {/* Aerodynamic Wraparound Tinted Windshield */}
+        {/* Wraparound Windshield */}
         <group position={[0, 1.35, -1.2]}>
           <mesh rotation={[-0.48, 0, 0]}>
             <boxGeometry args={[2.8, 0.85, 0.06]} />
-            <meshStandardMaterial
-              color="#0284c7"
-              roughness={0.05}
-              metalness={0.9}
-              transparent
-              opacity={0.8}
-            />
-          </mesh>
-          <mesh position={[-1.4, -0.05, 0.4]} rotation={[0, -0.7, 0]}>
-            <boxGeometry args={[0.9, 0.75, 0.05]} />
-            <meshStandardMaterial color="#0284c7" roughness={0.05} metalness={0.9} transparent opacity={0.8} />
-          </mesh>
-          <mesh position={[1.4, -0.05, 0.4]} rotation={[0, 0.7, 0]}>
-            <boxGeometry args={[0.9, 0.75, 0.05]} />
             <meshStandardMaterial color="#0284c7" roughness={0.05} metalness={0.9} transparent opacity={0.8} />
           </mesh>
         </group>
 
-        {/* Cockpit Interior: Dual Racing Bucket Seats */}
+        {/* Cockpit Seats */}
         <group position={[0, 0.9, 0.5]}>
-          <mesh position={[-0.7, 0.3, 0]} castShadow>
+          <mesh position={[-0.7, 0.3, 0]}>
             <boxGeometry args={[0.8, 0.7, 0.8]} />
             <meshStandardMaterial color="#0f172a" roughness={0.7} />
           </mesh>
-          <mesh position={[0.7, 0.3, 0]} castShadow>
+          <mesh position={[0.7, 0.3, 0]}>
             <boxGeometry args={[0.8, 0.7, 0.8]} />
             <meshStandardMaterial color="#0f172a" roughness={0.7} />
-          </mesh>
-          {/* Dashboard Console */}
-          <mesh position={[0, 0.45, -1.2]}>
-            <boxGeometry args={[2.5, 0.4, 0.6]} />
-            <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.3} />
-          </mesh>
-          {/* Illuminated Navigation Screen */}
-          <mesh position={[0.4, 0.6, -1.2]}>
-            <boxGeometry args={[0.45, 0.25, 0.02]} />
-            <meshBasicMaterial color="#38bdf8" />
           </mesh>
         </group>
 
@@ -740,38 +611,25 @@ export function Speedboat() {
         <group position={[-0.7, 1.35, 0.4]}>
           <mesh position={[0, 0.45, 0]}>
             <boxGeometry args={[0.65, 0.8, 0.5]} />
-            <meshStandardMaterial color="#f8fafc" roughness={0.8} /> {/* White jacket */}
+            <meshStandardMaterial color="#f8fafc" roughness={0.8} />
           </mesh>
           <mesh position={[0, 1.05, 0]}>
-            <sphereGeometry args={[0.26, 16, 16]} />
+            <sphereGeometry args={[0.26, 12, 12]} />
             <meshStandardMaterial color="#0f172a" />
           </mesh>
         </group>
 
-        {/* Stern Swim Platform */}
-        <mesh position={[0, 0.25, 4.4]}>
-          <boxGeometry args={[3.2, 0.2, 0.8]} />
-          <meshStandardMaterial color="#92400e" roughness={0.5} />
-        </mesh>
-
-        {/* Twin Mercury 450R-Style Outboard Racing Engines */}
+        {/* Twin Outboard Racing Engines */}
         {[-0.95, 0.95].map((engineX, eIdx) => (
           <group key={eIdx} position={[engineX, 0.55, 4.9]}>
-            {/* Engine Cowling */}
             <mesh castShadow>
               <boxGeometry args={[0.6, 1.25, 0.9]} />
               <meshStandardMaterial color="#090d16" metalness={0.9} roughness={0.15} />
             </mesh>
             <mesh position={[0, 0.3, 0.46]}>
               <boxGeometry args={[0.4, 0.15, 0.05]} />
-              <meshBasicMaterial color="#ef4444" /> {/* Red racing badge */}
+              <meshBasicMaterial color="#ef4444" />
             </mesh>
-            {/* Lower Unit & Propeller Shaft */}
-            <mesh position={[0, -0.85, 0.1]}>
-              <cylinderGeometry args={[0.12, 0.08, 0.8, 8]} />
-              <meshStandardMaterial color="#475569" metalness={0.95} />
-            </mesh>
-            {/* Spinning Bronze Propeller */}
             <group ref={eIdx === 0 ? propRef1 : propRef2} position={[0, -1.1, 0.4]}>
               <mesh rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.08, 0.08, 0.2, 8]} />
@@ -788,27 +646,21 @@ export function Speedboat() {
         ))}
       </group>
 
-      {/* GTA VI Dynamic Foaming V-Wake (Photo 2 Match!) */}
-      {/* Central High-Intensity Churn Froth */}
+      {/* Foamy V-Wake (Photo 2 Match!) */}
       <mesh position={[0, 0.08, 9]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[4.2, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.88} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.85} />
       </mesh>
-      {/* Spreading Outer Foam V-Trail */}
       <mesh position={[0, 0.06, 26]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[9.5, 34]} />
-        <meshBasicMaterial color="#e0f2fe" transparent opacity={0.62} />
-      </mesh>
-      <mesh position={[0, 0.04, 52]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[16.0, 48]} />
-        <meshBasicMaterial color="#bae6fd" transparent opacity={0.35} />
+        <meshBasicMaterial color="#e0f2fe" transparent opacity={0.55} />
       </mesh>
     </group>
   );
 }
 
 // ==============================================================
-// 10. REAL RESUME FLOATING BARGE BILLBOARDS (Photo 5 GTA Vice City Style!)
+// 10. REAL RESUME FLOATING BARGE BILLBOARDS
 // ==============================================================
 function createBillboardTexture(project?: {
   step: string;
@@ -825,14 +677,12 @@ function createBillboardTexture(project?: {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  // Background gradient
   const bgGrad = ctx.createLinearGradient(0, 0, 0, 680);
   bgGrad.addColorStop(0, "#030712");
   bgGrad.addColorStop(1, "#0b0f19");
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, 1024, 680);
 
-  // Top Neon Banner Strip
   const stripGrad = ctx.createLinearGradient(0, 0, 1024, 0);
   stripGrad.addColorStop(0, "#38bdf8");
   stripGrad.addColorStop(0.5, "#a855f7");
@@ -840,7 +690,6 @@ function createBillboardTexture(project?: {
   ctx.fillStyle = stripGrad;
   ctx.fillRect(0, 0, 1024, 12);
 
-  // Top Bar Metadata
   ctx.fillStyle = "#38bdf8";
   ctx.font = "bold 20px monospace";
   ctx.fillText(project.step, 48, 55);
@@ -849,7 +698,6 @@ function createBillboardTexture(project?: {
   ctx.font = "bold 16px monospace";
   ctx.fillText("CHANDRAGIRI BALAJI // PRODUCTION SYSTEM", 580, 55);
 
-  // Divider
   ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -857,7 +705,6 @@ function createBillboardTexture(project?: {
   ctx.lineTo(976, 76);
   ctx.stroke();
 
-  // Project Title
   ctx.fillStyle = "#ffffff";
   ctx.font = "900 38px system-ui, sans-serif";
   ctx.shadowColor = "rgba(56, 189, 248, 0.9)";
@@ -865,7 +712,6 @@ function createBillboardTexture(project?: {
   ctx.fillText(project.title, 48, 135);
   ctx.shadowBlur = 0;
 
-  // Code Terminal Box
   ctx.fillStyle = "#02040a";
   ctx.fillRect(48, 168, 928, 140);
   ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
@@ -879,7 +725,6 @@ function createBillboardTexture(project?: {
     ctx.fillText(l, 68, 212 + i * 34);
   });
 
-  // Description
   ctx.fillStyle = "#e2e8f0";
   ctx.font = "21px system-ui, sans-serif";
   const words = project.desc.split(" ");
@@ -898,7 +743,6 @@ function createBillboardTexture(project?: {
   }
   ctx.fillText(curLine, 48, curY);
 
-  // Stack Badges
   let pillX = 48;
   const pillY = 478;
   ctx.font = "bold 17px monospace";
@@ -914,7 +758,6 @@ function createBillboardTexture(project?: {
     pillX += w + 16;
   });
 
-  // Bottom CTA Button
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(48, 565, 340, 54);
   ctx.fillStyle = "#000000";
@@ -948,58 +791,37 @@ export function FloatingBargeBillboard({
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Industrial Floating Steel Barge Hull */}
-      <mesh position={[0, 0.8, 0]} castShadow receiveShadow>
+      <mesh position={[0, 0.8, 0]} castShadow>
         <boxGeometry args={[36, 1.8, 14]} />
-        <meshStandardMaterial color="#991b1b" roughness={0.4} metalness={0.6} /> {/* Heavy Red Industrial Hull */}
+        <meshStandardMaterial color="#991b1b" roughness={0.4} metalness={0.6} />
       </mesh>
 
-      {/* Yellow Safety Hazard Stripe along Hull Rim */}
       <mesh position={[0, 1.6, 7.05]}>
         <boxGeometry args={[36, 0.25, 0.1]} />
         <meshStandardMaterial color="#eab308" roughness={0.3} />
       </mesh>
 
-      {/* Rubber Fenders along perimeter */}
-      {[-16, -11, -6, 0, 6, 11, 16].map((tx, idx) => (
-        <mesh key={idx} position={[tx, 0.8, 7.15]} rotation={[0, 0, Math.PI / 2]}>
-          <torusGeometry args={[0.7, 0.25, 8, 16]} />
-          <meshStandardMaterial color="#090d16" roughness={0.9} />
-        </mesh>
-      ))}
-
-      {/* Heavy Steel Truss Scaffolding Towers */}
       {[-16, 16].map((sx, idx) => (
         <group key={idx} position={[sx, 12, 0]}>
           <mesh castShadow>
             <cylinderGeometry args={[0.35, 0.45, 22, 8]} />
             <meshStandardMaterial color="#334155" metalness={0.95} roughness={0.2} />
           </mesh>
-          {[-8, -4, 0, 4, 8].map((crossY) => (
-            <mesh key={crossY} position={[0, crossY, 0]} rotation={[0, 0, 0.78]}>
-              <boxGeometry args={[3.5, 0.15, 0.15]} />
-              <meshStandardMaterial color="#475569" metalness={0.9} />
-            </mesh>
-          ))}
         </group>
       ))}
 
-      {/* Glowing Neon Outline Border */}
       <mesh position={[0, 12, 0.5]}>
         <boxGeometry args={[28.4, 18.4, 0.2]} />
         <meshBasicMaterial color="#38bdf8" />
       </mesh>
 
-      {/* Neon Water Reflection Light */}
-      <pointLight position={[0, 12, 4]} intensity={5.5} distance={55} color="#38bdf8" />
+      <pointLight position={[0, 12, 4]} intensity={4.5} distance={50} color="#38bdf8" />
 
-      {/* Back Panel */}
       <mesh position={[0, 12, -0.1]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[28, 18]} />
         <meshStandardMaterial color="#0b0f19" roughness={0.8} />
       </mesh>
 
-      {/* In-World 3D Screen Surface */}
       <mesh
         position={[0, 12, 0.7]}
         onClick={(e) => {
