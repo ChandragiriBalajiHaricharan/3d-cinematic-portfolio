@@ -9,7 +9,7 @@ const CinematicExperience = dynamic(
 
 export default function Home() {
   return (
-    <main className="w-screen h-screen overflow-hidden bg-[#0a0500]">
+    <main className="w-full min-h-screen relative bg-[#030712]">
       <CinematicExperience />
     </main>
   );

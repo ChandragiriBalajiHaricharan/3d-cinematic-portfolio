@@ -6,28 +6,28 @@ import { useGLTF, Sky } from "@react-three/drei";
 import * as THREE from "three";
 
 // ==============================================================
-// 1. ATMOSPHERIC SKY & SUN (Optimized for High Performance)
+// 1. ATMOSPHERIC SKY & SUN (Balanced Golden Daylight - No Blinding Bloom)
 // ==============================================================
 export function AtmosphericSky() {
   return (
     <group>
       <Sky
-        sunPosition={[95, 65, -200]}
-        turbidity={4}
-        rayleigh={1.2}
-        mieCoefficient={0.005}
-        mieDirectionalG={0.82}
+        sunPosition={[140, 85, -240]}
+        turbidity={3}
+        rayleigh={1.0}
+        mieCoefficient={0.003}
+        mieDirectionalG={0.8}
       />
 
-      {/* Radiant Sun Corona Core */}
-      <mesh position={[95, 65, -200]}>
-        <sphereGeometry args={[14, 20, 20]} />
+      {/* Sun Corona Core */}
+      <mesh position={[140, 85, -240]}>
+        <sphereGeometry args={[9, 20, 20]} />
         <meshBasicMaterial color="#fffbeb" />
       </mesh>
-      {/* Sun Volumetric Bloom Halo */}
-      <mesh position={[95, 65, -200]}>
-        <sphereGeometry args={[36, 20, 20]} />
-        <meshBasicMaterial color="#fde047" transparent opacity={0.3} />
+      {/* Soft Golden Sun Halo */}
+      <mesh position={[140, 85, -240]}>
+        <sphereGeometry args={[22, 20, 20]} />
+        <meshBasicMaterial color="#fbbf24" transparent opacity={0.18} />
       </mesh>
 
       {/* Distant Clouds */}
@@ -364,7 +364,7 @@ export function CityBoulevard() {
     const tex = loader.load("/textures/haussmann_facade.jpg");
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(1.5, 1);
+    tex.repeat.set(2, 2.5);
     tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
   }, []);

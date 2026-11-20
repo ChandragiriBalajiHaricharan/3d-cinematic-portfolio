@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { scrollBridge } from "./ScrollBridge";
 
 const scenes = [
   { id: "paris", label: "01 // PARIS", pct: 0.04 },
-  { id: "title", label: "02 // BALAJI", pct: 0.18 },
-  { id: "ride", label: "03 // FREEWAY", pct: 0.36 },
-  { id: "harbor", label: "04 // THE HARBOR", pct: 0.52 },
-  { id: "sea", label: "05 // SPEEDBOAT", pct: 0.68 },
-  { id: "projects", label: "06 // BARGES", pct: 0.82 },
+  { id: "title", label: "02 // BALAJI", pct: 0.20 },
+  { id: "ride", label: "03 // FREEWAY", pct: 0.38 },
+  { id: "harbor", label: "04 // THE HARBOR", pct: 0.54 },
+  { id: "sea", label: "05 // SPEEDBOAT", pct: 0.70 },
+  { id: "projects", label: "06 // BARGES", pct: 0.84 },
   { id: "finale", label: "07 // ABOUT ME", pct: 0.98 },
 ];
 
@@ -17,17 +16,23 @@ export default function JourneyNavigator() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const handler = (pct: number) => {
-      setScrollProgress(pct);
+    const handleScroll = () => {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll > 0) {
+        setScrollProgress(window.scrollY / maxScroll);
+      }
     };
-    scrollBridge.listeners.add(handler);
-    return () => {
-      scrollBridge.listeners.delete(handler);
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const jumpTo = (pct: number) => {
-    scrollBridge.scrollTo(pct);
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({
+      top: maxScroll * pct,
+      behavior: "smooth",
+    });
   };
 
   return (
