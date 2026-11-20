@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Balaji — AI Agent Engineer",
+  title: "Chandragiri Balaji Haricharan — AI Agent Engineer",
   description:
-    "I design AI agents and the solid engineering behind them: orchestration, custom tools, vector memory, and 179 passing tests.",
-  keywords: ["AI", "agents", "engineering", "portfolio", "Balaji"],
+    "AI Agent Engineer & Backend Architect. Specializing in LangGraph multi-agent orchestration, ChromaDB RAG pipelines, FastAPI, and 179 passing automated tests.",
+  keywords: ["AI Agent Engineer", "LangGraph", "FastAPI", "ChromaDB", "Chandragiri Balaji Haricharan", "Portfolio"],
   openGraph: {
-    title: "Balaji — AI Agent Engineer",
+    title: "Chandragiri Balaji Haricharan — AI Agent Engineer",
     description:
-      "I design AI agents and the solid engineering behind them: orchestration, custom tools, vector memory, and 179 passing tests.",
+      "AI Agent Engineer & Backend Architect. Specializing in LangGraph multi-agent orchestration, ChromaDB RAG pipelines, FastAPI, and 179 passing automated tests.",
     type: "website",
   },
 };
